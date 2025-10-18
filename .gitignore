@@ -1,0 +1,17 @@
+*
+
+!.gitignore
+!readme.md
+!POA/
+!POA/**
+!manage.py
+!static/
+!static/**
+!dockerfile
+!docker-compose.yml
+!.dockerignore
+!requirements.txt
+
+
+**/__pycache__/
+**/*.pyc
