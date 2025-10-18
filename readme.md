@@ -20,17 +20,6 @@ Sistema de gerenciamento acadêmico desenvolvido em Django para a disciplina de 
 - Interface administrativa completa
 - Design responsivo
 
-## Estrutura do Projeto
-
-projeto-academico/
-├── app_principal/ # Aplicação principal
-├── pessoas/ # Gestão de usuários e papéis
-├── academico/ # Lógica acadêmica
-├── static/ # Arquivos estáticos
-├── templates/ # Templates HTML
-├── docker-compose.yml # Orquestração de containers
-└── requirements.txt # Dependências Python
-
 ## Modelagem de Dados
 
 O sistema utiliza uma abordagem de composição para papéis de usuário:
