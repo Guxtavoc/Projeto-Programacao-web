@@ -1,9 +1,11 @@
-
 from django.contrib import admin
+from django.urls import path, include
 from django.urls import path
-from POA import views
+from contas.views import dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',views.visualizarHome, name = "Home"),
+    path('', dashboard, name="home"),
+    path('', include('contas.urls')),
+    path('academico/', include('academico.urls')),
 ]

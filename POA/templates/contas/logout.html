@@ -1,0 +1,17 @@
+{% extends "base2.html" %} {% block content %}
+<div class="content">
+  <div class="welcome-section">
+    <h1>Sair da conta</h1>
+    <p>Tem certeza de que deseja encerrar sua sessão?</p>
+  </div>
+
+  <div class="card" style="max-width: 400px; margin: 0 auto">
+    <h3>Confirmar Logout</h3>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="login-btn w-100 mt-3">Sair</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

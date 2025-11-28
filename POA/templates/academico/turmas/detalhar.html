@@ -1,0 +1,136 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+<!--prettier-ignore-->
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-users"></i> {{ turma.nome }}</h2>
+        <div class="btn-group">
+            <a href="{% url 'academico:gerenciar_alunos_turma' turma.pk %}" class="btn btn-primary">
+                <i class="fas fa-users"></i> Gerenciar Alunos
+            </a>
+            <a href="{% url 'academico:editar_turma' turma.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="{% url 'academico:listar_turmas' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Informações da Turma</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Série:</th>
+                            <td>{{ turma.get_serie_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>Período:</th>
+                            <td>{{ turma.get_periodo_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>Ano Letivo:</th>
+                            <td>{{ turma.ano_letivo }}</td>
+                        </tr>
+                        <tr>
+                            <th>Professor:</th>
+                            <td>
+                                {% if turma.professor %}
+                                    {{ turma.professor.papel.pessoa.nome }}
+                                {% else %}
+                                    <span class="text-muted">Não atribuído</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Sala:</th>
+                            <td>
+                                {% if turma.sala %}
+                                    {{ turma.sala.nome }} (Capacidade: {{ turma.sala.capacidade }})
+                                {% else %}
+                                    <span class="text-muted">Não atribuída</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Total de Alunos:</th>
+                            <td><span class="badge bg-primary">{{ turma.total_alunos }}</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Disciplinas</h5>
+                </div>
+                <div class="card-body">
+                    {% if turma.disciplinas.all %}
+                    <div class="list-group">
+                        {% for disciplina in turma.disciplinas.all %}
+                        <div class="list-group-item">
+                            <h6 class="mb-1">{{ disciplina.get_nome_display }}</h6>
+                            <small class="text-muted">
+                                Professor: 
+                                {% if disciplina.professor %}
+                                    {{ disciplina.professor.papel.pessoa.nome }}
+                                {% else %}
+                                    Não atribuído
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Nenhuma disciplina vinculada a esta turma.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Alunos Matriculados</h5>
+        </div>
+        <div class="card-body">
+            {% if matriculas %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Matrícula</th>
+                            <th>Data de Matrícula</th>
+                            <th>Situação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for matricula in matriculas %}
+                        <tr>
+                            <td>{{ matricula.aluno.papel.pessoa.nome }}</td>
+                            <td>{{ matricula.aluno.matricula }}</td>
+                            <td>{{ matricula.data_matricula|date:"d/m/Y" }}</td>
+                            <td>
+                                <span class="badge {% if matricula.situacao == 'ATIVA' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ matricula.get_situacao_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">Nenhum aluno matriculado nesta turma.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

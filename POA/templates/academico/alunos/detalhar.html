@@ -1,0 +1,146 @@
+{% extends "base.html" %} {% load static %} {% block breadcrumb_items %}
+<!--prettier-ignore-->
+<li class="breadcrumb-item">
+  <a href="{% url 'academico:dashboard' %}">Acadêmico</a>
+</li>
+<li class="breadcrumb-item">
+  <a href="{% url 'academico:listar_alunos' %}">Alunos</a>
+</li>
+<li class="breadcrumb-item active">{{ aluno.papel.pessoa.nome }}</li>
+{% endblock %} {% block content %}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-md-4">
+      <!-- Card de Informações Pessoais -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Informações Pessoais</h5>
+        </div>
+        <div class="card-body">
+          <div class="text-center mb-3">
+            <div class="avatar-lg mx-auto mb-3">
+              <div
+                class="avatar-title bg-primary text-white rounded-circle"
+                style="width: 80px; height: 80px; font-size: 2rem"
+              >
+                {{ aluno.papel.pessoa.nome|first|upper }}
+              </div>
+            </div>
+            <h4>{{ aluno.papel.pessoa.nome }}</h4>
+            <p class="text-muted">Matrícula: {{ aluno.matricula }}</p>
+          </div>
+
+          <div class="info-list">
+            <div class="info-item mb-2">
+              <strong>Idade:</strong> {{ aluno.idade }} anos
+            </div>
+            <!--pretier-ignore-->
+            <div class="info-item mb-2">
+              <strong>Data Nascimento:</strong> {{ aluno.papel.pessoa.data_nascimento|date:"d/m/Y" }}
+            </div>
+            <div class="info-item mb-2">
+              <strong>CPF:</strong> {{ aluno.papel.pessoa.cpf }}
+            </div>
+            <!--pretier-ignore-->
+            <div class="info-item mb-2">
+              <strong>Email:</strong> {{ aluno.papel.pessoa.email|default:"Não informado" }}
+            </div>
+            <div class="info-item mb-2">
+              <strong>Telefone:</strong> {{ aluno.papel.pessoa.telefone|default:"Não informado" }}
+            </div>
+            <div class="info-item mb-2">
+              <strong>Data de Ingresso:</strong> {{ aluno.data_ingresso|date:"d/m/Y" }}
+            </div>
+            <div class="info-item">
+              <strong>Status:</strong>
+              {% if aluno.papel.ativo %}
+              <span class="badge bg-success">Ativo</span>
+              {% else %}
+              <span class="badge bg-danger">Inativo</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <!-- Turmas do Aluno -->
+      <div class="card mb-4">
+        <div
+          class="card-header d-flex justify-content-between align-items-center"
+        >
+          <h5 class="mb-0">Turmas</h5>
+          <span class="badge bg-primary">{{ turmas_aluno.count }}</span>
+        </div>
+        <div class="card-body">
+          {% if turmas_aluno %} {% for turma in turmas_aluno %}
+          <div class="turma-item border-bottom pb-2 mb-2">
+            <h6>{{ turma.nome }}</h6>
+            <small class="text-muted">
+              {{ turma.get_serie_display }} - {{ turma.get_periodo_display }}
+              ({{ turma.ano_letivo }})
+            </small>
+            {% if turma.professor %}
+            <br />
+            <small
+              ><strong>Professor:</strong> {{ turma.professor.papel.pessoa.nome
+              }}</small
+            >
+            {% endif %}
+          </div>
+          {% endfor %} {% else %}
+          <p class="text-muted">Aluno não está matriculado em nenhuma turma.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Ações</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex gap-2 flex-wrap">
+            <a
+              href="{% url 'academico:editar_aluno' aluno.pk %}"
+              class="btn btn-warning"
+            >
+              <i class="fas fa-edit"></i> Editar Matrícula
+            </a>
+            <a href="#" class="btn btn-info">
+              <i class="fas fa-file-alt"></i> Ver Boletim
+            </a>
+            <a href="#" class="btn btn-secondary">
+              <i class="fas fa-print"></i> Imprimir Ficha
+            </a>
+            {% if aluno.papel.ativo %}
+            <form
+              method="post"
+              action="{% url 'academico:toggle_aluno_status' aluno.pk %}"
+              style="display: inline"
+            >
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-user-times"></i> Desativar Aluno
+              </button>
+            </form>
+            {% else %}
+            <form
+              method="post"
+              action="{% url 'academico:toggle_aluno_status' aluno.pk %}"
+              style="display: inline"
+            >
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-user-check"></i> Ativar Aluno
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

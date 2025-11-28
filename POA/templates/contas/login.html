@@ -1,0 +1,32 @@
+{% extends "base2.html" %} {% block content %}
+<div class="content">
+  <div class="welcome-section">
+    <h1>Entrar no Sistema</h1>
+    <p>Informe suas credenciais para acessar o Sistema.</p>
+  </div>
+
+  <div class="card" style="max-width: 450px; margin: 0 auto">
+    <h3>Acesso ao Sistema</h3>
+
+    {% if form.errors %}
+    <div class="alert alert-danger mt-3">Usuário ou senha incorretos.</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">Usuário</label>
+        <input type="text" name="username" class="form-control" autofocus />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Senha</label>
+        <input type="password" name="password" class="form-control" />
+      </div>
+
+      <button type="submit" class="login-btn w-100">Entrar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

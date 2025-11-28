@@ -11,6 +11,12 @@
 !docker-compose.yml
 !.dockerignore
 !requirements.txt
+!pessoas/
+!pessoas/**
+!academico
+!academico/**
+!contas/
+!contas/**
 
 
 **/__pycache__/

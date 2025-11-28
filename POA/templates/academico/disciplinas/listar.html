@@ -1,0 +1,76 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+<!--prettier-ignore-->
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-book"></i> Gerenciar Disciplinas</h2>
+        <a href="{% url 'academico:criar_disciplina' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nova Disciplina
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            {% if disciplinas %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Código</th>
+                            <th>Professor</th>
+                            <th>Carga Horária</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for disciplina in disciplinas %}
+                        <tr>
+                            <td>
+                                <strong>{{ disciplina.get_nome_display }}</strong>
+                            </td>
+                            <td>{{ disciplina.nome }}</td>
+                            <td>
+                                {% if disciplina.professor %}
+                                    {{ disciplina.professor.papel.pessoa.nome }}
+                                {% else %}
+                                    <span class="text-muted">Não atribuído</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ disciplina.carga_horaria }}h</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'academico:editar_disciplina' disciplina.pk %}" 
+                                       class="btn btn-warning" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'academico:excluir_disciplina' disciplina.pk %}" 
+                                       class="btn btn-danger" title="Excluir">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Nenhuma disciplina cadastrada</h5>
+                <p class="text-muted">Clique no botão "Nova Disciplina" para começar.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

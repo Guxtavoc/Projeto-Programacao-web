@@ -1,0 +1,155 @@
+{% extends "base.html" %} 
+{% load static %} 
+
+<!-- prettier-ignore -->
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'academico:dashboard' %}">Acadêmico</a></li>
+<li class="breadcrumb-item"><a href="{% url 'academico:listar_turmas' %}">Turmas</a></li>
+<li class="breadcrumb-item active">{{ titulo }}</li>
+{% endblock %}
+
+<!-- prettier-ignore -->
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ titulo }}</h4>
+                    <a href="{% url 'academico:listar_turmas' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" id="turma-form">
+                        <!-- prettier-ignore -->
+                        {% csrf_token %}
+                        
+                        <!-- prettier-ignore -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <!-- prettier-ignore -->
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            <!-- prettier-ignore -->
+                            {% endfor %}
+                        </div>
+                        <!-- prettier-ignore -->
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.nome.label }} *</label>
+                                    {{ form.nome }}
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ form.serie.label }} *</label>
+                                            {{ form.serie }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ form.periodo.label }} *</label>
+                                            {{ form.periodo }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.ano_letivo.label }} *</label>
+                                    {{ form.ano_letivo }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.professor.label }}</label>
+                                    {{ form.professor }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.disciplinas.label }}</label>
+                                    {{ form.disciplinas }}
+                                    <div class="form-text">
+                                        Segure Ctrl (ou Cmd no Mac) para selecionar múltiplas disciplinas
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <a href="{% url 'academico:listar_turmas' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar Turma
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- prettier-ignore -->
+{% endblock %}
+
+<!-- prettier-ignore -->
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Melhorar a experiência de seleção múltipla
+    const disciplinasSelect = document.querySelector('#id_disciplinas');
+    
+    if (disciplinasSelect) {
+        // Adicionar contador de disciplinas selecionadas
+        function updateDisciplinasCounter() {
+            const selectedCount = disciplinasSelect.selectedOptions.length;
+            const counter = document.querySelector('.disciplinas-counter') || 
+                           document.createElement('small');
+            
+            counter.className = 'form-text disciplinas-counter';
+            counter.textContent = `${selectedCount} disciplina(s) selecionada(s)`;
+            
+            if (!document.querySelector('.disciplinas-counter')) {
+                disciplinasSelect.parentNode.appendChild(counter);
+            }
+        }
+        
+        disciplinasSelect.addEventListener('change', updateDisciplinasCounter);
+        updateDisciplinasCounter(); // Inicializar contador
+    }
+});
+</script>
+
+<style>
+/* Melhorar a aparência do select múltiplo */
+#id_disciplinas {
+    min-height: 120px;
+}
+
+#id_disciplinas option {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+}
+
+#id_disciplinas option:last-child {
+    border-bottom: none;
+}
+
+#id_disciplinas option:hover {
+    background-color: #f8f9fa;
+}
+
+.disciplinas-counter {
+    font-weight: 500;
+    color: #495057 !important;
+}
+</style>
+<!-- prettier-ignore -->
+{% endblock %}

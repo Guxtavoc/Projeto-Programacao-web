@@ -1,0 +1,305 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+<!-- prettier-ignore -->
+<div class="container mt-4">
+  <!-- Cabeçalho Personalizado -->
+  <div class="dashboard-header">
+    <h2>
+      {% if is_coordenador %}
+        <i class="fas fa-user-tie"></i> Dashboard do Coordenador
+      {% elif is_professor %}
+        <i class="fas fa-chalkboard-teacher"></i> Dashboard do Professor
+      {% elif is_aluno %}
+        <i class="fas fa-user-graduate"></i> Meu Painel
+      {% else %}
+        Dashboard
+      {% endif %}
+    </h2>
+    <p class="text-muted">Bem-vindo, {{ user.get_full_name|default:user.username }}</p>
+    
+    <!-- Indicador de Múltiplos Papéis -->
+    {% if papeis and papeis|length > 1 %}
+    <div class="role-badges mb-3">
+      {% for papel in papeis %}
+        <span class="badge bg-primary me-1">{{ papel|title }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Alerta para usuário sem vínculo -->
+  {% if not pessoa %}
+  <div class="alert alert-warning mt-3">
+    <i class="fas fa-exclamation-triangle"></i>
+    Seu cadastro ainda não possui uma Pessoa vinculada. Entre em contato com o administrador.
+  </div>
+  
+  {% else %}
+    <!-- SEÇÃO: ESTATÍSTICAS DO COORDENADOR -->
+    {% if is_coordenador %}
+    <div class="coordenador-section mt-4">
+      <div class="section-header bg-primary text-white p-3 rounded">
+        <h4 class="mb-0"><i class="fas fa-chart-line"></i> Visão Geral da Escola</h4>
+      </div>
+      
+      <div class="dashboard-cards mt-3">
+        <div class="card">
+          <i class="fas fa-user-graduate"></i>
+          <h3>Alunos</h3>
+          <p class="number">{{ total_alunos|default:"0" }}</p>
+          <small>cadastrados</small>
+        </div>
+        <div class="card">
+          <i class="fas fa-users"></i>
+          <h3>Professores</h3>
+          <p class="number">{{ total_professores|default:"0" }}</p>
+          <small>ativos</small>
+        </div>
+        <div class="card">
+          <i class="fas fa-book"></i>
+          <h3>Turmas</h3>
+          <p class="number">{{ total_turmas|default:"0" }}</p>
+          <small>criadas</small>
+        </div>
+      </div>
+
+      <!-- Alertas do Coordenador -->
+      {% if turmas_sem_professor and turmas_sem_professor > 0 %}
+      <div class="alert alert-warning mt-3">
+        <i class="fas fa-exclamation-circle"></i>
+        Existem {{ turmas_sem_professor }} turmas sem professor atribuído.
+      </div>
+      {% endif %}
+
+      <!-- Sistema Acadêmico para Coordenador -->
+      <div class="academico-section mt-4">
+        <h5><i class="fas fa-graduation-cap"></i> Sistema Acadêmico</h5>
+        <div class="d-flex flex-wrap gap-3 mt-3">
+          <a href="{% url 'academico:dashboard' %}" class="btn btn-primary">
+            <i class="fas fa-tachometer-alt"></i> Dashboard Acadêmico
+          </a>
+          <a href="{% url 'academico:listar_turmas' %}" class="btn btn-outline-primary">
+            <i class="fas fa-users"></i> Gerenciar Turmas
+          </a>
+          <a href="{% url 'academico:listar_alunos' %}" class="btn btn-outline-primary">
+            <i class="fas fa-user-graduate"></i> Gerenciar Alunos
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- SEÇÃO: VISÃO DO PROFESSOR -->
+    {% if is_professor %}
+    <div class="professor-section mt-4">
+      <div class="section-header bg-info text-white p-3 rounded">
+        <h4 class="mb-0"><i class="fas fa-chalkboard-teacher"></i> Minhas Turmas</h4>
+      </div>
+      
+      {% if minhas_turmas %}
+      <div class="teacher-cards mt-3">
+        {% for turma in minhas_turmas %}
+        <div class="card turma-card">
+          <h5>{{ turma.nome }}</h5>
+          <p class="text-muted">{{ turma.disciplina }}</p>
+          <div class="turma-info">
+            <span><i class="fas fa-users"></i> {{ turma.alunos.count }} alunos</span>
+            <span><i class="fas fa-clock"></i> {{ turma.horario }}</span>
+          </div>
+          <div class="mt-2">
+            <a href="#" class="btn btn-sm btn-primary">
+              <i class="fas fa-clipboard-check"></i> Fazer Chamada
+            </a>
+            <a href="#" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-edit"></i> Lançar Notas
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="alert alert-info mt-3">
+        <i class="fas fa-info-circle"></i>
+        Módulo de turmas em desenvolvimento. Em breve você poderá gerenciar suas turmas aqui.
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- SEÇÃO: VISÃO DO ALUNO -->
+    {% if is_aluno %}
+    <div class="aluno-section mt-4">
+      <div class="section-header bg-success text-white p-3 rounded">
+        <h4 class="mb-0"><i class="fas fa-user-graduate"></i> Meu Desempenho</h4>
+      </div>
+      
+      <div class="student-stats mt-3">
+        <div class="card">
+          <i class="fas fa-clipboard-check"></i>
+          <h3>Presenças Hoje</h3>
+          <p class="number">{{ presencas_hoje|default:"0" }}</p>
+          <small>em breve</small>
+        </div>
+        <div class="card">
+          <i class="fas fa-user-times"></i>
+          <h3>Faltas no Mês</h3>
+          <p class="number">{{ faltas_mes|default:"0" }}</p>
+          <small>em breve</small>
+        </div>
+        <div class="card">
+          <i class="fas fa-book"></i>
+          <h3>Minhas Turmas</h3>
+          <p class="number">{{ minhas_turmas_aluno.count|default:"0" }}</p>
+          <small>em breve</small>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- SEÇÃO: AÇÕES RÁPIDAS GERAIS -->
+    <div class="quick-actions mt-5">
+      <h4>Ações Rápidas</h4>
+      <div class="d-flex flex-wrap gap-3 mt-3">
+        
+        <!-- Ações para Coordenador -->
+        {% if is_coordenador %}
+        <a href="{% url 'academico:listar_alunos' %}" class="btn btn-primary">
+          <i class="fas fa-user-graduate"></i> Gerenciar Alunos
+        </a>
+        <a href="{% url 'criar_usuario' %}" class="btn btn-success">
+          <i class="fas fa-user-plus"></i> Criar Usuário
+        </a>
+        <a href="#" class="btn btn-info">
+          <i class="fas fa-chart-bar"></i> Relatórios
+        </a>
+        {% endif %}
+
+        <!-- Ações para Professor -->
+        {% if is_professor %}
+        <a href="#" class="btn btn-primary">
+          <i class="fas fa-users"></i> Minhas Turmas
+        </a>
+        <a href="#" class="btn btn-warning">
+          <i class="fas fa-clipboard-check"></i> Chamada de Hoje
+        </a>
+        <a href="#" class="btn btn-success">
+          <i class="fas fa-edit"></i> Lançar Notas
+        </a>
+        {% endif %}
+
+        <!-- Ações para Aluno -->
+        {% if is_aluno %}
+        <a href="#" class="btn btn-primary">
+          <i class="fas fa-file-alt"></i> Meu Boletim
+        </a>
+        <a href="#" class="btn btn-info">
+          <i class="fas fa-calendar-check"></i> Minha Frequência
+        </a>
+        <a href="#" class="btn btn-success">
+          <i class="fas fa-clock"></i> Horário de Aulas
+        </a>
+        {% endif %}
+
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- SEÇÃO: CALENDÁRIO/EVENTOS (Comum a todos) -->
+  <div class="common-section mt-5">
+    <h4>Próximos Eventos</h4>
+    <div class="card mt-3">
+      <div class="card-body">
+        <div class="event-list">
+          <div class="event-item mb-2">
+            <strong>📅 Reunião de Pais</strong> - 15/12/2023
+          </div>
+          <div class="event-item mb-2">
+            <strong>🎓 Festa de Formatura</strong> - 20/12/2023
+          </div>
+          <div class="event-item">
+            <strong>📚 Feriado Escolar</strong> - 25/12/2023
+          </div>
+        </div>
+        <a href="#" class="btn btn-outline-primary mt-3">
+          <i class="fas fa-calendar-alt"></i> Ver Calendário Completo
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .dashboard-cards,
+  .teacher-cards,
+  .student-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #4a90e2;
+    transition: transform 0.3s ease;
+    text-align: center;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  .card i {
+    font-size: 2rem;
+    color: #4a90e2;
+    margin-bottom: 10px;
+  }
+
+  .card h3 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+  }
+
+  .card .number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 10px 0;
+  }
+
+  .card small {
+    color: #7f8c8d;
+  }
+
+  .section-header {
+    margin-bottom: 0;
+  }
+
+  .quick-actions .btn {
+    margin-bottom: 10px;
+  }
+
+  .academico-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-cards,
+    .teacher-cards,
+    .student-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .quick-actions .btn {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}

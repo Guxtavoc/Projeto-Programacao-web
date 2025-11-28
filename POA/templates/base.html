@@ -1,9 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-br">
   {% include 'head.html' %}
+
   <body>
-    {% include 'navbar.html' %}
-    <div class="container my-4">{% block content %} {% endblock %}</div>
+    <!-- Header fixo no topo -->
+    <header class="header">
+      <div class="logo-container">
+        <div class="logo">
+          <i class="fas fa-graduation-cap"></i>
+          <span>Escola Fundamental</span>
+        </div>
+        <div class="datetime" id="datetime"></div>
+      </div>
+
+      <div class="user-area">
+        {% if user.is_authenticated %}
+        <div class="user-info">
+          <div class="user-name">
+            {{ user.get_full_name|default:user.username }}
+          </div>
+          <!-- prettier-ignore -->
+          <div class="user-role">
+            {% if user.pessoa and user.pessoa.papeis.exists %} 
+            {{ user.pessoa.papeis.first.tipo|title }} {% else %} Usuário {% endif %}
+          </div>
+        </div>
+
+        <a href="{% url 'contas_logout' %}" class="btn btn-danger btn-sm ms-2">
+          Sair
+        </a>
+
+        {% else %}
+        <a href="{% url 'contas_login' %}" class="btn btn-primary btn-sm">
+          Efetuar Login
+        </a>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- LAYOUT PRINCIPAL: sidebar + conteúdo -->
+    <div class="main-container">
+      {% include 'navbar.html' %}
+
+      <main class="content">{% block content %}{% endblock %}</main>
+    </div>
+
+    {% include 'footer.html' %}
   </body>
-  {% include 'footer.html' %}
 </html>

@@ -1,0 +1,91 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="container mt-4">
+  <h2>Criar novo usuário</h2>
+  <hr />
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label>Username</label>
+        {{ form.username }}
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label>Senha</label>
+        {{ form.senha }}
+      </div>
+
+      <div class="col-md-12 mb-3">
+        <label>Nome completo</label>
+        {{ form.nome }}
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>CPF</label>
+        {{ form.cpf }}
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>Data de Nascimento</label>
+        {{ form.data_nascimento }}
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>E-mail</label>
+        {{ form.email }}
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>Telefone</label>
+        {{ form.telefone }}
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>Papel</label>
+        {{ form.tipo_papel }}
+      </div>
+
+      <!-- Campos específicos -->
+      <div class="col-md-4 mb-3 aluno-fields" style="display: none">
+        <label>Matrícula</label>
+        {{ form.matricula }}
+      </div>
+
+      <div class="col-md-4 mb-3 professor-fields" style="display: none">
+        <label>Código Funcional</label>
+        {{ form.codigo_funcional }}
+      </div>
+
+      <div class="col-md-8 mb-3 professor-fields" style="display: none">
+        <label>Formação</label>
+        {{ form.formacao }}
+      </div>
+    </div>
+
+    <button class="btn btn-primary mt-3">Criar Usuário</button>
+  </form>
+</div>
+
+<script>
+  const papelSelect = document.querySelector("#id_tipo_papel");
+
+  function updateFields() {
+    const papel = papelSelect.value;
+
+    document.querySelectorAll(".aluno-fields").forEach((el) => {
+      el.style.display = papel === "ALUNO" ? "block" : "none";
+    });
+
+    document.querySelectorAll(".professor-fields").forEach((el) => {
+      el.style.display = papel === "PROFESSOR" ? "block" : "none";
+    });
+  }
+
+  papelSelect.addEventListener("change", updateFields);
+  updateFields();
+</script>
+
+{% endblock %}

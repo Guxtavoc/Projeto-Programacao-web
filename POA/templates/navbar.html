@@ -1,63 +1,45 @@
-<!-- Cabeçalho -->
-<header class="header">
-  <div class="logo-container">
-    <div class="logo">
-      <i class="fas fa-graduation-cap"></i>
-      <span>Escola Fundamental</span>
-    </div>
-    <div class="datetime" id="datetime">
-      <!-- Data e hora serão preenchidas via JavaScript -->
-    </div>
-  </div>
-
-  <div class="user-area">
-    <!-- Se o usuário estiver logado -->
-    <div class="user-info" id="user-info">
-      <div class="user-name">Maria Silva</div>
-      <div class="user-role">Professora</div>
-    </div>
-
-    <!-- Se o usuário não estiver logado -->
-    <!-- <button class="login-btn">Efetuar Login</button> -->
-  </div>
-</header>
-
-<!-- Layout Principal -->
-<div class="main-container">
-  <!-- Barra de Navegação Lateral -->
+<!-- SIDEBAR + CONTEÚDO -->
+<div class="layout">
+  <!-- SIDEBAR -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-toggle" id="sidebar-toggle">
       <i class="fas fa-bars"></i>
     </div>
+
     <ul class="sidebar-menu">
       <li class="menu-item">
-        <i class="fas fa-home"></i>
-        <span class="menu-text">Início</span>
+        <a href="{% url 'dashboard' %}" class="menu-link">
+          <i class="fas fa-home"></i> <span class="menu-text">Início</span>
+        </a>
       </li>
       <li class="menu-item">
         <i class="fas fa-clipboard-list"></i>
         <span class="menu-text">Boletins</span>
       </li>
       <li class="menu-item">
-        <i class="fas fa-users"></i>
-        <span class="menu-text">Turmas</span>
+        <a href="{% url 'academico:listar_turmas' %}" class="menu-link">
+          <i class="fas fa-users"></i> <span class="menu-text">Turmas</span>
+        </a>
       </li>
       <li class="menu-item">
         <i class="fas fa-calendar-check"></i>
         <span class="menu-text">Chamada</span>
       </li>
       <li class="menu-item">
-        <i class="fas fa-book"></i>
-        <span class="menu-text">Disciplinas</span>
+        <a href="{% url 'academico:listar_disciplinas' %}" class="menu-link">
+          <i class="fas fa-book"></i> <span class="menu-text">Disciplinas</span>
+        </a>
       </li>
       <li class="menu-item">
         <i class="fas fa-chart-bar"></i>
         <span class="menu-text">Relatórios</span>
       </li>
       <li class="menu-item">
-        <i class="fas fa-cog"></i>
-        <span class="menu-text">Configurações</span>
+        <i class="fas fa-cog"></i> <span class="menu-text">Configurações</span>
       </li>
     </ul>
   </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="content" id="content">{% block content %}{% endblock %}</main>
 </div>

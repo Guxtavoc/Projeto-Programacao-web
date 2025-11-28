@@ -1,0 +1,109 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+<!--prettier-ignore-->
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-graduation-cap"></i> Dashboard Acadêmico</h2>
+        <div class="btn-group">
+            <a href="{% url 'academico:criar_turma' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nova Turma
+            </a>
+        </div>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ total_turmas }}</h3>
+                    <p class="mb-0">Turmas Ativas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ total_alunos }}</h3>
+                    <p class="mb-0">Alunos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ total_professores }}</h3>
+                    <p class="mb-0">Professores</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ total_disciplinas }}</h3>
+                    <p class="mb-0">Disciplinas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-secondary">{{ total_salas }}</h3>
+                    <p class="mb-0">Salas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Ações Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'academico:listar_turmas' %}" class="btn btn-outline-primary text-start">
+                            <i class="fas fa-users"></i> Gerenciar Turmas
+                        </a>
+                        <a href="{% url 'academico:listar_alunos' %}" class="btn btn-outline-primary text-start">
+                            <i class="fas fa-user-graduate"></i> Gerenciar Alunos
+                        </a>
+                        <a href="{% url 'academico:listar_professores' %}" class="btn btn-outline-primary text-start">
+                            <i class="fas fa-chalkboard-teacher"></i> Gerenciar Professores
+                        </a>
+                        <a href="{% url 'academico:listar_disciplinas' %}" class="btn btn-outline-primary text-start">
+                            <i class="fas fa-book"></i> Gerenciar Disciplinas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Turmas Recentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if turmas_recentes %}
+                        {% for turma in turmas_recentes %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <h6 class="mb-0">{{ turma.nome }}</h6>
+                                <small class="text-muted">{{ turma.get_serie_display }} - {{ turma.get_periodo_display }}</small>
+                            </div>
+                            <a href="{% url 'academico:detalhar_turma' turma.pk %}" class="btn btn-sm btn-outline-primary">
+                                Ver
+                            </a>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Nenhuma turma cadastrada.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

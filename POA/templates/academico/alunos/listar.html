@@ -1,0 +1,409 @@
+{% extends "base.html" %} {% load static %}
+
+<!-- prettier-ignore -->
+{% block breadcrumb_items %}
+<li class="breadcrumb-item">
+  <a href="{% url 'academico:dashboard' %}">Acadêmico</a>
+</li>
+<li class="breadcrumb-item active">Alunos</li>
+{% endblock %}
+
+<!-- prettier-ignore -->
+{% block content %}
+<div class="container-fluid mt-4">
+  <!-- Cabeçalho -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="fas fa-user-graduate"></i> Gerenciar Alunos</h2>
+      <p class="text-muted">Lista de todos os alunos cadastrados no sistema</p>
+    </div>
+    <a href="{% url 'criar_usuario' %}" class="btn btn-success">
+      <i class="fas fa-user-plus"></i> Novo Aluno
+    </a>
+  </div>
+
+  <!-- Filtros e Busca -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Buscar aluno..."
+              id="search-input"
+            />
+            <button class="btn btn-outline-secondary" type="button">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" id="status-filter">
+            <option value="">Todos os status</option>
+            <option value="ativo">Ativos</option>
+            <option value="inativo">Inativos</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" id="turma-filter">
+            <option value="">Todas as turmas</option>
+            <!-- prettier-ignore -->
+            {% for turma in turmas %}
+            <option value="{{ turma.id }}">{{ turma.nome }}</option>
+            <!-- prettier-ignore -->
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertas -->
+  <!-- prettier-ignore -->
+  {% if messages %}
+  <!-- prettier-ignore -->
+  {% for message in messages %}
+  <div
+    class="alert alert-{{ message.tags }} alert-dismissible fade show"
+    role="alert"
+  >
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <!-- prettier-ignore -->
+  {% endfor %}
+  <!-- prettier-ignore -->
+  {% endif %}
+
+  <!-- Tabela de Alunos -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Lista de Alunos</h5>
+    </div>
+
+    <div class="card-body">
+      <!-- prettier-ignore -->
+      {% if alunos %}
+      <div class="table-responsive">
+        <table class="table table-striped table-hover" id="alunos-table">
+          <thead class="table-light">
+            <tr>
+              <th>Matrícula</th>
+              <th>Nome</th>
+              <th>Idade</th>
+              <th>Turmas</th>
+              <th>Status</th>
+              <th>Data de Ingresso</th>
+              <th width="120">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- prettier-ignore -->
+            {% for aluno in alunos %}
+            <tr
+              class="aluno-row"
+              data-status="{{ aluno.papel.ativo|yesno:'ativo,inativo' }}"
+              data-turmas="{{ aluno.turmas_ids }}"
+            >
+              <td>
+                <strong>{{ aluno.matricula }}</strong>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="avatar-sm me-3">
+                    <div
+                      class="avatar-title bg-primary text-white rounded-circle"
+                    >
+                      <!-- prettier-ignore -->
+                      {{ aluno.papel.pessoa.nome|first|upper }}
+                    </div>
+                  </div>
+                  <div>
+                    <h6 class="mb-0">{{ aluno.papel.pessoa.nome }}</h6>
+                    <small class="text-muted"
+                      >{{ aluno.papel.pessoa.email }}</small
+                    >
+                  </div>
+                </div>
+              </td>
+              <td>{{ aluno.idade }} anos</td>
+              <td>
+                <!-- prettier-ignore -->
+                {% if aluno.turmas_ativas %}
+                <!-- prettier-ignore -->
+                {% for turma in aluno.turmas_ativas %}
+                <span class="badge bg-info me-1">{{ turma.nome }}</span>
+                <!-- prettier-ignore -->
+                {% endfor %}
+                <!-- prettier-ignore -->
+                {% else %}
+                <span class="text-muted">Sem turma</span>
+                <!-- prettier-ignore -->
+                {% endif %}
+              </td>
+              <td>
+                <!-- prettier-ignore -->
+                {% if aluno.papel.ativo %}
+                <span class="badge bg-success">Ativo</span>
+                <!-- prettier-ignore -->
+                {% else %}
+                <span class="badge bg-danger">Inativo</span>
+                <!-- prettier-ignore -->
+                {% endif %}
+              </td>
+              <td>{{ aluno.data_ingresso|date:"d/m/Y" }}</td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <a
+                    href="{% url 'academico:detalhar_aluno' aluno.pk %}"
+                    class="btn btn-outline-primary"
+                    title="Visualizar"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a
+                    href="{% url 'academico:editar_aluno' aluno.pk %}"
+                    class="btn btn-outline-warning"
+                    title="Editar"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger toggle-aluno-status"
+                    title="{% if aluno.papel.ativo %}Desativar{% else %}Ativar{% endif %}"
+                    data-aluno-id="{{ aluno.pk }}"
+                    data-aluno-nome="{{ aluno.papel.pessoa.nome }}"
+                    data-aluno-status="{{ aluno.papel.ativo }}"
+                  >
+                    <i
+                      class="fas {% if aluno.papel.ativo %}fa-user-times{% else %}fa-user-check{% endif %}"
+                    ></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <!-- prettier-ignore -->
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginação -->
+      <!-- prettier-ignore -->
+      {% if is_paginated %}
+      <nav aria-label="Navegação de página" class="mt-4">
+        <ul class="pagination justify-content-center">
+          <!-- prettier-ignore -->
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page=1">&laquo; Primeira</a>
+          </li>
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="?page={{ page_obj.previous_page_number }}"
+              >Anterior</a
+            >
+          </li>
+          <!-- prettier-ignore -->
+          {% endif %}
+
+          <li class="page-item active">
+            <span class="page-link">
+              Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+          </li>
+
+          <!-- prettier-ignore -->
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}"
+              >Próxima</a
+            >
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}"
+              >Última &raquo;</a
+            >
+          </li>
+          <!-- prettier-ignore -->
+          {% endif %}
+        </ul>
+      </nav>
+      <!-- prettier-ignore -->
+      {% endif %}
+
+      <!-- prettier-ignore -->
+      {% else %}
+      <div class="text-center py-5">
+        <i class="fas fa-user-graduate fa-4x text-muted mb-3"></i>
+        <h4 class="text-muted">Nenhum aluno encontrado</h4>
+        <p class="text-muted">Não há alunos cadastrados no sistema.</p>
+        <a href="{% url 'criar_usuario' %}" class="btn btn-primary">
+          <i class="fas fa-user-plus"></i> Cadastrar Primeiro Aluno
+        </a>
+      </div>
+      <!-- prettier-ignore -->
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="row mt-4">
+    <div class="col-md-3">
+      <div class="card stat-card bg-primary text-white">
+        <div class="card-body text-center">
+          <h3>{{ total_alunos }}</h3>
+          <p class="mb-0">Total de Alunos</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stat-card bg-success text-white">
+        <div class="card-body text-center">
+          <h3>{{ alunos_ativos }}</h3>
+          <p class="mb-0">Alunos Ativos</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stat-card bg-warning text-dark">
+        <div class="card-body text-center">
+          <h3>{{ alunos_inativos }}</h3>
+          <p class="mb-0">Alunos Inativos</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stat-card bg-info text-white">
+        <div class="card-body text-center">
+          <h3>{{ alunos_sem_turma }}</h3>
+          <p class="mb-0">Sem Turma</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirmar Ação</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-message">
+          Tem certeza que deseja alterar o status deste aluno?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <form id="status-form" method="post" style="display: inline">
+          <!-- prettier-ignore -->
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary">Confirmar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- prettier-ignore -->
+{% endblock %}
+
+<!-- prettier-ignore -->
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Filtros
+    const searchInput = document.getElementById("search-input");
+    const statusFilter = document.getElementById("status-filter");
+    const turmaFilter = document.getElementById("turma-filter");
+    const alunoRows = document.querySelectorAll(".aluno-row");
+
+    function filterRows() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const statusValue = statusFilter.value;
+      const turmaValue = turmaFilter.value;
+
+      alunoRows.forEach((row) => {
+        const nome = row.querySelector("h6").textContent.toLowerCase();
+        const status = row.getAttribute("data-status");
+        const turmas = row.getAttribute("data-turmas");
+
+        const matchesSearch = nome.includes(searchTerm);
+        const matchesStatus = !statusValue || status === statusValue;
+        const matchesTurma = !turmaValue || turmas.includes(turmaValue);
+
+        row.style.display =
+          matchesSearch && matchesStatus && matchesTurma ? "" : "none";
+      });
+    }
+
+    searchInput.addEventListener("input", filterRows);
+    statusFilter.addEventListener("change", filterRows);
+    turmaFilter.addEventListener("change", filterRows);
+
+    // Toggle status do aluno
+    const toggleButtons = document.querySelectorAll(".toggle-aluno-status");
+    const confirmModal = new bootstrap.Modal(
+      document.getElementById("confirmModal")
+    );
+    const statusForm = document.getElementById("status-form");
+    const modalMessage = document.getElementById("modal-message");
+
+    toggleButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const alunoId = this.getAttribute("data-aluno-id");
+        const alunoNome = this.getAttribute("data-aluno-nome");
+        const isActive = this.getAttribute("data-aluno-status") === "True";
+
+        const action = isActive ? "desativar" : "ativar";
+        modalMessage.textContent = `Tem certeza que deseja ${action} o aluno "${alunoNome}"?`;
+
+        statusForm.action =
+          `{% url 'academico:toggle_aluno_status' 0 %}`.replace("0", alunoId);
+        confirmModal.show();
+      });
+    });
+  });
+</script>
+
+<style>
+  .avatar-sm {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-card {
+    transition: transform 0.3s ease;
+    border: none;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .aluno-row td {
+    vertical-align: middle;
+  }
+
+  .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+  }
+</style>
+<!-- prettier-ignore -->
+{% endblock %}
