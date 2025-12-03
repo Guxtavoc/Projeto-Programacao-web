@@ -1,0 +1,117 @@
+{% extends "base.html" %} 
+{% load static %} 
+
+<!-- prettier-ignore -->
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Início</a></li>
+<li class="breadcrumb-item active">Minhas Turmas</li>
+{% endblock %}
+
+<!-- prettier-ignore -->
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-users"></i> Minhas Turmas</h2>
+            <p class="text-muted">Todas as turmas atribuídas a você</p>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Alertas -->
+    <!-- prettier-ignore -->
+    {% if messages %}
+    <!-- prettier-ignore -->
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <!-- prettier-ignore -->
+    {% endfor %}
+    <!-- prettier-ignore -->
+    {% endif %}
+
+    <!-- Lista de Turmas -->
+    <div class="card">
+        <div class="card-body">
+            <!-- prettier-ignore -->
+            {% if turmas %}
+            <div class="row">
+                <!-- prettier-ignore -->
+                {% for turma in turmas %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card turma-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">{{ turma.nome }}</h5>
+                                <span class="badge bg-primary">{{ turma.total_alunos }} alunos</span>
+                            </div>
+                            
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-graduation-cap"></i> {{ turma.get_serie_display }}<br>
+                                <i class="fas fa-clock"></i> {{ turma.get_periodo_display }}<br>
+                                <i class="fas fa-calendar"></i> {{ turma.ano_letivo }}
+                            </p>
+                            
+                            <div class="mb-2">
+                                <!-- prettier-ignore -->
+                                {% for disciplina in turma.disciplinas.all|slice:":3" %}
+                                <span class="badge bg-info me-1">{{ disciplina.get_nome_display|slice:":10" }}</span>
+                                <!-- prettier-ignore -->
+                                {% endfor %}
+                                <!-- prettier-ignore -->
+                                {% if turma.disciplinas.count > 3 %}
+                                <span class="badge bg-secondary">+{{ turma.disciplinas.count|add:"-3" }}</span>
+                                <!-- prettier-ignore -->
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex gap-2 mt-3">
+                                <a href="{% url 'academico:detalhar_turma_professor' turma.pk %}" 
+                                   class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="fas fa-eye"></i> Detalhes
+                                </a>
+                                <a href="{% url 'academico:alunos_turma_professor' turma.pk %}" 
+                                   class="btn btn-sm btn-outline-success flex-fill">
+                                    <i class="fas fa-user-graduate"></i> Alunos
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- prettier-ignore -->
+                {% endfor %}
+            </div>
+            <!-- prettier-ignore -->
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Você não possui turmas atribuídas</h4>
+                <p class="text-muted">Entre em contato com o coordenador para ser atribuído a turmas.</p>
+            </div>
+            <!-- prettier-ignore -->
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.turma-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    border-left: 4px solid #4a90e2;
+}
+
+.turma-card:hover {
+    border-color: #4a90e2;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+</style>
+<!-- prettier-ignore -->
+{% endblock %}

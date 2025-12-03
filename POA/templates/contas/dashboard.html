@@ -32,6 +32,9 @@
     <i class="fas fa-exclamation-triangle"></i>
     Seu cadastro ainda não possui uma Pessoa vinculada. Entre em contato com o administrador.
   </div>
+          <a href="{% url 'criar_usuario' %}" class="btn btn-success">
+          <i class="fas fa-user-plus"></i> Criar Usuário
+        </a>
   
   {% else %}
     <!-- SEÇÃO: ESTATÍSTICAS DO COORDENADOR -->
@@ -74,9 +77,6 @@
       <div class="academico-section mt-4">
         <h5><i class="fas fa-graduation-cap"></i> Sistema Acadêmico</h5>
         <div class="d-flex flex-wrap gap-3 mt-3">
-          <a href="{% url 'academico:dashboard' %}" class="btn btn-primary">
-            <i class="fas fa-tachometer-alt"></i> Dashboard Acadêmico
-          </a>
           <a href="{% url 'academico:listar_turmas' %}" class="btn btn-outline-primary">
             <i class="fas fa-users"></i> Gerenciar Turmas
           </a>
@@ -100,17 +100,22 @@
         {% for turma in minhas_turmas %}
         <div class="card turma-card">
           <h5>{{ turma.nome }}</h5>
-          <p class="text-muted">{{ turma.disciplina }}</p>
+          <p class="text-muted">
+            {{ turma.get_serie_display }} - {{ turma.get_periodo_display }} ({{ turma.ano_letivo }})
+          </p>
           <div class="turma-info">
-            <span><i class="fas fa-users"></i> {{ turma.alunos.count }} alunos</span>
-            <span><i class="fas fa-clock"></i> {{ turma.horario }}</span>
+            <span><i class="fas fa-users"></i> {{ turma.total_alunos }} alunos</span>
+            <span><i class="fas fa-book"></i> {{ turma.disciplinas.count }} disciplinas</span>
           </div>
           <div class="mt-2">
-            <a href="#" class="btn btn-sm btn-primary">
-              <i class="fas fa-clipboard-check"></i> Fazer Chamada
+            <a href="{% url 'academico:detalhar_turma_professor' turma.pk %}" class="btn btn-sm btn-primary">
+              <i class="fas fa-eye"></i> Detalhes
             </a>
-            <a href="#" class="btn btn-sm btn-outline-primary">
-              <i class="fas fa-edit"></i> Lançar Notas
+            <a href="{% url 'academico:alunos_turma_professor' turma.pk %}" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-user-graduate"></i> Alunos
+            </a>
+            <a href="{% url 'academico:fazer_chamada_professor' turma.pk %}" class="btn btn-sm btn-success">
+              <i class="fas fa-clipboard-check"></i> Fazer Chamada
             </a>
           </div>
         </div>
@@ -119,7 +124,7 @@
       {% else %}
       <div class="alert alert-info mt-3">
         <i class="fas fa-info-circle"></i>
-        Módulo de turmas em desenvolvimento. Em breve você poderá gerenciar suas turmas aqui.
+        Você não possui turmas atribuídas no momento.
       </div>
       {% endif %}
     </div>
@@ -170,19 +175,6 @@
         </a>
         <a href="#" class="btn btn-info">
           <i class="fas fa-chart-bar"></i> Relatórios
-        </a>
-        {% endif %}
-
-        <!-- Ações para Professor -->
-        {% if is_professor %}
-        <a href="#" class="btn btn-primary">
-          <i class="fas fa-users"></i> Minhas Turmas
-        </a>
-        <a href="#" class="btn btn-warning">
-          <i class="fas fa-clipboard-check"></i> Chamada de Hoje
-        </a>
-        <a href="#" class="btn btn-success">
-          <i class="fas fa-edit"></i> Lançar Notas
         </a>
         {% endif %}
 

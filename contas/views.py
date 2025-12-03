@@ -150,18 +150,18 @@ def dashboard(request):
         try:
             aluno_info = AlunoInfo.objects.get(papel__pessoa=pessoa, papel__ativo=True)
             minhas_turmas = Turma.objects.filter(matriculas__aluno=aluno_info, matriculas__ativa=True)
-            
+
             context.update({
                 'minhas_turmas_aluno': minhas_turmas,
                 'presencas_hoje': Chamada.objects.filter(
-                    aluno=aluno_info, 
-                    aula__data=date.today(),
+                    aluno=aluno_info,
+                    data=date.today(),
                     presente=True
                 ).count(),
                 'faltas_mes': Chamada.objects.filter(
                     aluno=aluno_info,
-                    aula__data__month=date.today().month,
-                    aula__data__year=date.today().year,
+                    data__month=date.today().month,
+                    data__year=date.today().year,
                     presente=False
                 ).count(),
             })

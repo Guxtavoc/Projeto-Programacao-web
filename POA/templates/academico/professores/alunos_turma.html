@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Alunos da Turma {{ turma.nome }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">
+        Turma: {{ turma.nome }} — <small class="text-muted">{{ turma.ano }}</small>
+    </h2>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <span>Alunos matriculados</span>
+            <a href="{% url 'academico:minhas_turmas_professor' %}" class="btn btn-light btn-sm">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            {% if alunos %}
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Idade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for aluno in alunos %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+
+                                    <!-- Nome com quebra -->
+                                    <td class="text-wrap" style="max-width: 220px;">
+                                        {{ aluno.papel.pessoa.nome }} {{ aluno.papel.pessoa.sobrenome }}
+                                    </td>
+
+                                    <!-- Email não quebra -->
+                                    <td class="text-muted" style="white-space: nowrap;">
+                                        {{ aluno.papel.pessoa.email }}
+                                    </td>
+
+                                    <td>{{ aluno.idade }} anos</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+                <p class="text-center text-muted mt-3">
+                    Nenhum aluno matriculado nesta turma.
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -134,39 +134,12 @@ class Matricula(models.Model):
     def __str__(self):
         return f"{self.aluno} - {self.turma}"
 
-class Aula(models.Model):
+class Chamada(models.Model):
     turma = models.ForeignKey(
         Turma,
         on_delete=models.CASCADE,
-        related_name='aulas',
-        verbose_name='Turma'
-    )
-    disciplina = models.ForeignKey(
-        Disciplina,
-        on_delete=models.CASCADE,
-        related_name='aulas',
-        verbose_name='Disciplina'
-    )
-    data = models.DateField(default=timezone.now, verbose_name='Data da aula')
-    horario_inicio = models.TimeField(verbose_name='Horário de início')
-    horario_fim = models.TimeField(verbose_name='Horário de término')
-    conteudo = models.TextField(blank=True, verbose_name='Conteúdo ministrado')
-    observacoes = models.TextField(blank=True, verbose_name='Observações')
-    
-    class Meta:
-        verbose_name = 'Aula'
-        verbose_name_plural = 'Aulas'
-        ordering = ['data', 'horario_inicio']
-    
-    def __str__(self):
-        return f"{self.turma} - {self.disciplina} - {self.data}"
-
-class Chamada(models.Model):
-    aula = models.ForeignKey(
-        Aula,
-        on_delete=models.CASCADE,
         related_name='chamadas',
-        verbose_name='Aula'
+        verbose_name='Turma'
     )
     aluno = models.ForeignKey(
         AlunoInfo,
@@ -174,18 +147,20 @@ class Chamada(models.Model):
         related_name='chamadas',
         verbose_name='Aluno'
     )
+    data = models.DateField(default=timezone.now, verbose_name='Data')
     presente = models.BooleanField(default=True, verbose_name='Presente')
     observacao = models.TextField(blank=True, verbose_name='Observação')
-    
+
     class Meta:
         verbose_name = 'Chamada'
         verbose_name_plural = 'Chamadas'
-        unique_together = ['aula', 'aluno']
-        ordering = ['aula__data', 'aluno']
-    
+        unique_together = ['turma', 'aluno', 'data']
+        ordering = ['data', 'aluno']
+
     def __str__(self):
         status = "Presente" if self.presente else "Faltou"
-        return f"{self.aluno} - {self.aula} - {status}"
+        return f"{self.data} - {self.aluno} - {status}"
+
 
 class Nota(models.Model):
     BIMESTRE_CHOICES = [

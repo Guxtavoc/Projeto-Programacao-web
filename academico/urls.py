@@ -26,4 +26,8 @@ urlpatterns = [
     path('alunos/<int:pk>/toggle-status/', views.toggle_aluno_status, name='toggle_aluno_status'),
     
     path('professores/', views.listar_professores, name='listar_professores'),
+    path('professor/minhas-turmas/', views.minhas_turmas_professor, name='minhas_turmas_professor'),
+    path('professor/turmas/<int:pk>/', views.detalhar_turma_professor, name='detalhar_turma_professor'),
+    path('professor/turmas/<int:turma_pk>/alunos/', views.alunos_turma_professor, name='alunos_turma_professor'),
+    path('professor/aula/<int:turma_id>/chamada/', views.chamada, name='fazer_chamada_professor'),
 ]

@@ -20,17 +20,7 @@ class MatriculaAdmin(admin.ModelAdmin):
     list_filter = ['ativa', 'situacao', 'turma', 'data_matricula']
     search_fields = ['aluno__papel__pessoa__nome', 'turma__nome']
 
-@admin.register(Aula)
-class AulaAdmin(admin.ModelAdmin):
-    list_display = ['turma', 'disciplina', 'data', 'horario_inicio', 'horario_fim']
-    list_filter = ['turma', 'disciplina', 'data']
-    search_fields = ['turma__nome', 'disciplina__nome']
 
-@admin.register(Chamada)
-class ChamadaAdmin(admin.ModelAdmin):
-    list_display = ['aula', 'aluno', 'presente']
-    list_filter = ['presente', 'aula__data', 'aula__turma']
-    search_fields = ['aluno__papel__pessoa__nome', 'aula__turma__nome']
 
 @admin.register(Nota)
 class NotaAdmin(admin.ModelAdmin):

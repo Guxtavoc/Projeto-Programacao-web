@@ -4,9 +4,9 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from django.core.paginator import Paginator
 from django.utils import timezone
-from .models import Turma, Disciplina, Matricula
+from .models import Chamada, Turma, Disciplina, Matricula
 from .forms import TurmaForm, DisciplinaForm, AlunoEditForm
-from pessoas.models import AlunoInfo, ProfessorInfo, Pessoa
+from pessoas.models import AlunoInfo, Papel, ProfessorInfo, Pessoa
 
 @login_required
 def dashboard_academico(request):
@@ -50,9 +50,14 @@ def criar_turma(request):
 def detalhar_turma(request, pk):
     turma = get_object_or_404(Turma, pk=pk)
     matriculas = turma.matriculas.filter(ativa=True).select_related('aluno')
+    is_coordenador = (
+    hasattr(request.user, "pessoa") and
+    request.user.pessoa.papeis.filter(tipo=Papel.COORDENADOR).exists()
+)
     context = {
         'turma': turma,
         'matriculas': matriculas,
+        "is_coordenador": is_coordenador,
     }
     return render(request, 'academico/turmas/detalhar.html', context)
 
@@ -247,7 +252,6 @@ def detalhar_aluno(request, pk):
     return render(request, 'academico/alunos/detalhar.html', context)
 
 @login_required
-@login_required
 def editar_aluno(request, pk):
     """Editar informações de um aluno - APENAS matrícula"""
     aluno = get_object_or_404(AlunoInfo, pk=pk)
@@ -414,3 +418,163 @@ def adicionar_alunos_em_lote(request, pk):
         'alunos_disponiveis': alunos_disponiveis,
     }
     return render(request, 'academico/turmas/adicionar_em_lote.html', context)
+
+@login_required
+def minhas_turmas_professor(request):
+    """Listar todas as turmas do professor"""
+    try:
+        professor_info = ProfessorInfo.objects.get(papel__pessoa__user=request.user, papel__ativo=True)
+    except ProfessorInfo.DoesNotExist:
+        messages.error(request, "Você não tem permissão de professor ativo.")
+        return redirect('dashboard')
+    
+    turmas = Turma.objects.filter(
+        professor=professor_info,
+        ativa=True
+    ).select_related('professor').prefetch_related('disciplinas').order_by('serie', 'nome')
+    
+    context = {
+        'professor': professor_info,
+        'turmas': turmas,
+    }
+    return render(request, 'academico/professores/minhas_turmas.html', context)
+
+@login_required
+def detalhar_turma_professor(request, pk):
+    """Detalhar uma turma específica do professor com suas matrículas e alunos"""
+    try:
+        professor_info = ProfessorInfo.objects.get(
+            papel__pessoa__user=request.user,
+            papel__ativo=True
+        )
+    except ProfessorInfo.DoesNotExist:
+        messages.error(request, "Você não tem permissão de professor ativo.")
+        return redirect('dashboard')
+    
+    turma = get_object_or_404(
+        Turma,
+        pk=pk,
+        professor=professor_info,
+        ativa=True
+    )
+    
+    # 🔥 Buscar matrículas dos alunos da turma
+    matriculas = Matricula.objects.filter(
+        turma=turma,
+        aluno__papel__ativo=True
+    ).select_related(
+        'aluno__papel__pessoa'
+    ).order_by('aluno__papel__pessoa__nome')
+
+    # Disciplinas da turma associadas ao professor
+    disciplinas_turma = turma.disciplinas.filter(
+        professor=professor_info,
+        ativa=True
+    )
+    
+    # Estatísticas
+    total_alunos = matriculas.count()
+    
+    context = {
+        'turma': turma,
+        'matriculas': matriculas,      # 👈 Agora SIM
+        'disciplinas_turma': disciplinas_turma,
+        'total_alunos': total_alunos,
+        'professor': professor_info,
+        'is_coordenador': request.user.groups.filter(name='Coordenador').exists(),  # opcional
+        'eh_coordenador': request.user.groups.filter(name='Coordenador').exists(), # se estiver usando no template
+    }
+    
+    return render(request, 'academico/turmas/detalhar.html', context)
+
+@login_required
+def alunos_turma_professor(request, turma_pk):
+    """Listar alunos de uma turma específica (visualização do professor)"""
+    try:
+        professor_info = ProfessorInfo.objects.get(papel__pessoa__user=request.user, papel__ativo=True)
+    except ProfessorInfo.DoesNotExist:
+        messages.error(request, "Você não tem permissão de professor ativo.")
+        return redirect('dashboard')
+    
+    turma = get_object_or_404(
+        Turma,
+        pk=turma_pk,
+        professor=professor_info,
+        ativa=True
+    )
+    
+    alunos = AlunoInfo.objects.filter(
+        turmas=turma,
+        papel__ativo=True
+    ).select_related('papel__pessoa').order_by('papel__pessoa__nome')
+    
+    # Adicionar idade para cada aluno
+    today = timezone.now().date()
+    for aluno in alunos:
+        aluno.idade = today.year - aluno.papel.pessoa.data_nascimento.year - (
+            (today.month, today.day) < 
+            (aluno.papel.pessoa.data_nascimento.month, aluno.papel.pessoa.data_nascimento.day)
+        )
+    
+    context = {
+        'turma': turma,
+        'alunos': alunos,
+        'professor': professor_info,
+    }
+    return render(request, 'academico/professores/alunos_turma.html', context)
+
+@login_required
+def chamada(request, turma_id):
+
+    # professor logado
+    professor = get_object_or_404(
+        ProfessorInfo,
+        papel__pessoa__user=request.user
+    )
+
+    turma = get_object_or_404(Turma, id=turma_id)
+
+    # segurança: professor só acessa turmas dele
+    if turma.professor != professor:
+        messages.error(request, "Você não tem permissão para acessar esta turma.")
+        return redirect('academico:minhas_turmas_professor')
+
+    data_hoje = timezone.now().date()
+
+    # alunos ativos
+    alunos = (
+        Matricula.objects
+        .filter(turma=turma, ativa=True)
+        .select_related('aluno__papel__pessoa')
+        .order_by('aluno__papel__pessoa__nome')
+    )
+
+    # cria chamadas
+    for matricula in alunos:
+        Chamada.objects.get_or_create(
+            turma=turma,
+            aluno=matricula.aluno,
+            data=data_hoje,
+        )
+
+    # busca chamadas do dia
+    chamadas = (
+        Chamada.objects
+        .filter(turma=turma, data=data_hoje)
+        .select_related('aluno__papel__pessoa')
+        .order_by('aluno__papel__pessoa__nome')
+    )
+
+    if request.method == "POST":
+        for chamada in chamadas:
+            chamada.presente = request.POST.get(f"presente_{chamada.id}") == "on"
+            chamada.save()
+
+        messages.success(request, "Chamada registrada com sucesso!")
+        return redirect('academico:chamada', turma_id=turma.id)
+
+    return render(request, 'academico/professores/chamada.html', {
+        'turma': turma,
+        'chamadas': chamadas,
+        'data_hoje': data_hoje
+    })
