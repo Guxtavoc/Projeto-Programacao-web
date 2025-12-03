@@ -1,14 +1,12 @@
 {% extends "base.html" %} 
 {% load static %} 
 
-<!-- prettier-ignore -->
 {% block breadcrumb_items %}
 <li class="breadcrumb-item"><a href="{% url 'academico:dashboard' %}">Acadêmico</a></li>
 <li class="breadcrumb-item"><a href="{% url 'academico:listar_turmas' %}">Turmas</a></li>
 <li class="breadcrumb-item active">{{ titulo }}</li>
 {% endblock %}
 
-<!-- prettier-ignore -->
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -23,19 +21,14 @@
                 
                 <div class="card-body">
                     <form method="post" id="turma-form">
-                        <!-- prettier-ignore -->
                         {% csrf_token %}
                         
-                        <!-- prettier-ignore -->
                         {% if form.non_field_errors %}
                         <div class="alert alert-danger">
-                            <!-- prettier-ignore -->
                             {% for error in form.non_field_errors %}
                                 {{ error }}
-                            <!-- prettier-ignore -->
                             {% endfor %}
                         </div>
-                        <!-- prettier-ignore -->
                         {% endif %}
 
                         <div class="row">
@@ -71,7 +64,7 @@
                                     <label class="form-label">{{ form.professor.label }}</label>
                                     {{ form.professor }}
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label class="form-label">{{ form.disciplinas.label }}</label>
                                     {{ form.disciplinas }}
@@ -96,39 +89,34 @@
         </div>
     </div>
 </div>
-<!-- prettier-ignore -->
 {% endblock %}
 
-<!-- prettier-ignore -->
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Melhorar a experiência de seleção múltipla
     const disciplinasSelect = document.querySelector('#id_disciplinas');
     
     if (disciplinasSelect) {
-        // Adicionar contador de disciplinas selecionadas
         function updateDisciplinasCounter() {
             const selectedCount = disciplinasSelect.selectedOptions.length;
-            const counter = document.querySelector('.disciplinas-counter') || 
-                           document.createElement('small');
+            let counter = document.querySelector('.disciplinas-counter');
             
-            counter.className = 'form-text disciplinas-counter';
-            counter.textContent = `${selectedCount} disciplina(s) selecionada(s)`;
-            
-            if (!document.querySelector('.disciplinas-counter')) {
+            if (!counter) {
+                counter = document.createElement('small');
+                counter.className = 'form-text disciplinas-counter';
                 disciplinasSelect.parentNode.appendChild(counter);
             }
+            
+            counter.textContent = `${selectedCount} disciplina(s) selecionada(s)`;
         }
         
         disciplinasSelect.addEventListener('change', updateDisciplinasCounter);
-        updateDisciplinasCounter(); // Inicializar contador
+        updateDisciplinasCounter();
     }
 });
 </script>
 
 <style>
-/* Melhorar a aparência do select múltiplo */
 #id_disciplinas {
     min-height: 120px;
 }
@@ -151,5 +139,4 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #495057 !important;
 }
 </style>
-<!-- prettier-ignore -->
 {% endblock %}

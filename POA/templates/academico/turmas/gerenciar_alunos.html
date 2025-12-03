@@ -1,7 +1,6 @@
-{% extends "base.html" %} 
-{% load static %} 
+{% extends "base.html" %}
+{% load static %}
 
-<!-- prettier-ignore -->
 {% block breadcrumb_items %}
 <li class="breadcrumb-item"><a href="{% url 'academico:dashboard' %}">Acadêmico</a></li>
 <li class="breadcrumb-item"><a href="{% url 'academico:listar_turmas' %}">Turmas</a></li>
@@ -9,227 +8,220 @@
 <li class="breadcrumb-item active">Gerenciar Alunos</li>
 {% endblock %}
 
-<!-- prettier-ignore -->
 {% block content %}
 <div class="container-fluid mt-4">
     <!-- Cabeçalho -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2><i class="fas fa-users"></i> Gerenciar Alunos - {{ turma.nome }}</h2>
-            <p class="text-muted">
-                {{ turma.get_serie_display }} - {{ turma.get_periodo_display }} ({{ turma.ano_letivo }})
-            </p>
+            <h2 class="mb-0"><i class="fas fa-users text-primary me-2"></i>Gerenciar Alunos</h2>
         </div>
-        <div class="btn-group">
+        <div class="d-flex align-items-center gap-2">
             <a href="{% url 'academico:adicionar_alunos_em_lote' turma.pk %}" class="btn btn-success">
-                <i class="fas fa-user-plus"></i> Adicionar em Lote
+                <i class="fas fa-user-plus me-1"></i> Adicionar em Lote
             </a>
-            <a href="{% url 'academico:detalhar_turma' turma.pk %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Voltar
+            <a href="{% url 'academico:detalhar_turma' turma.pk %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
             </a>
         </div>
     </div>
 
     <!-- Alertas -->
-    <!-- prettier-ignore -->
     {% if messages %}
-    <!-- prettier-ignore -->
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <!-- prettier-ignore -->
-    {% endfor %}
-    <!-- prettier-ignore -->
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
     {% endif %}
 
     <div class="row">
         <!-- Alunos na Turma -->
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Alunos na Turma ({{ alunos_na_turma.count }})</h5>
-                    <span class="badge bg-primary">{{ alunos_na_turma.count }} alunos</span>
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user-graduate text-primary me-2"></i>Alunos na Turma</h5>
+                    <span class="badge bg-light text-dark border">{{ alunos_na_turma.count }} aluno{{ alunos_na_turma.count|pluralize }}</span>
                 </div>
                 
-                <div class="card-body">
-                    <!-- prettier-ignore -->
+                <div class="card-body p-0">
                     {% if alunos_na_turma %}
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Matrícula</th>
-                                    <th>Nome</th>
-                                    <th>Idade</th>
-                                    <th>Status</th>
-                                    <th width="100">Ações</th>
+                                    <th width="15%">Matrícula</th>
+                                    <th width="50%">Nome</th>
+                                    <th width="15%">Idade</th>
+                                    <th width="20%" class="text-end">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- prettier-ignore -->
                                 {% for aluno in alunos_na_turma %}
-                                <tr>
-                                    <td>
-                                        <strong>{{ aluno.matricula }}</strong>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-3">
-                                                <div class="avatar-title bg-primary text-white rounded-circle">
-                                                    <!-- prettier-ignore -->
-                                                    {{ aluno.papel.pessoa.nome|first|upper }}
-                                                </div>
+                                <tr class="border-bottom">
+                                    <td class="align-middle fw-bold">{{ aluno.matricula }}</td>
+                                    <td class="align-middle">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                {{ aluno.papel.pessoa.nome|first|upper }}
                                             </div>
                                             <div>
-                                                <h6 class="mb-0">{{ aluno.papel.pessoa.nome }}</h6>
-                                                <small class="text-muted">{{ aluno.papel.pessoa.email }}</small>
+                                                <div class="fw-bold mb-0">{{ aluno.papel.pessoa.nome }} {{ aluno.papel.pessoa.sobrenome }}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td class="align-middle">
                                         {% now "Y" as current_year %}
-                                        {{ current_year|add:"-0"|add:"-aluno.papel.pessoa.data_nascimento.year" }} anos
+                                        <span class="badge bg-info bg-opacity-10 text-info border border-info">
+                                            {{ current_year|add:"-aluno.papel.pessoa.data_nascimento.year" }} anos
+                                        </span>
                                     </td>
-                                    <td>
-                                        <span class="badge bg-success">Matriculado</span>
-                                    </td>
-                                    <td>
-                                        <form method="post" action="{% url 'academico:remover_aluno_turma' turma.pk aluno.pk %}" class="d-inline">
-                                            <!-- prettier-ignore -->
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                    onclick="return confirm('Tem certeza que deseja remover este aluno da turma?')">
-                                                <i class="fas fa-user-times"></i>
-                                            </button>
-                                        </form>
-                                        <a href="{% url 'academico:detalhar_aluno' aluno.pk %}" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
+                                    <td class="text-end align-middle">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'academico:detalhar_aluno' aluno.pk %}" 
+                                               class="btn btn-outline-primary" title="Visualizar">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <form method="post" action="{% url 'academico:remover_aluno_turma' turma.pk aluno.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-danger" title="Remover da turma"
+                                                        onclick="return confirm('Tem certeza que deseja remover este aluno da turma?')">
+                                                    <i class="fas fa-user-times"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
-                                <!-- prettier-ignore -->
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    <!-- prettier-ignore -->
                     {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">Nenhum aluno na turma</h5>
-                        <p class="text-muted">Adicione alunos usando o formulário ao lado.</p>
+                    <div class="text-center py-5">
+                        <div class="mb-4"><i class="fas fa-users fa-3x text-muted opacity-50"></i></div>
+                        <h4 class="text-muted mb-3">Nenhum aluno na turma</h4>
+                        <p class="text-muted mb-4">Adicione alunos usando o formulário ao lado.</p>
                     </div>
-                    <!-- prettier-ignore -->
                     {% endif %}
                 </div>
+
+                {% if alunos_na_turma %}
+                <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <small class="text-muted"><i class="fas fa-info-circle me-1"></i> Total de alunos: {{ alunos_na_turma.count }}</small>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Adicionar Aluno -->
+        <!-- Coluna direita -->
         <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Adicionar Aluno</h5>
+            <!-- Card Adicionar Aluno -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Adicionar Aluno</h5>
                 </div>
-                
                 <div class="card-body">
-                    <!-- prettier-ignore -->
                     {% if alunos_disponiveis %}
                     <form method="post">
-                        <!-- prettier-ignore -->
                         {% csrf_token %}
-                        
                         <div class="mb-3">
                             <label class="form-label">Selecionar Aluno</label>
                             <select name="aluno_id" class="form-select" required>
                                 <option value="">Selecione um aluno...</option>
-                                <!-- prettier-ignore -->
                                 {% for aluno in alunos_disponiveis %}
-                                <option value="{{ aluno.pk }}">
-                                    {{ aluno.papel.pessoa.nome }} - {{ aluno.matricula }}
-                                </option>
-                                <!-- prettier-ignore -->
+                                <option value="{{ aluno.pk }}">{{ aluno.papel.pessoa.nome }} - {{ aluno.matricula }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-
                         <button type="submit" name="adicionar_aluno" class="btn btn-primary w-100">
-                            <i class="fas fa-user-plus"></i> Adicionar à Turma
+                            <i class="fas fa-user-plus me-1"></i> Adicionar à Turma
                         </button>
                     </form>
-                    
                     <div class="mt-3">
-                        <small class="text-muted">
-                            <i class="fas fa-info-circle"></i>
-                            {{ alunos_disponiveis.count }} aluno(s) disponível(is)
-                        </small>
+                        <small class="text-muted"><i class="fas fa-info-circle me-1"></i> {{ alunos_disponiveis.count }} aluno(s) disponível(is)</small>
                     </div>
-                    <!-- prettier-ignore -->
                     {% else %}
                     <div class="text-center py-3">
-                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <div class="mb-3"><i class="fas fa-check-circle fa-2x text-success"></i></div>
                         <p class="text-muted">Todos os alunos já estão nesta turma.</p>
                         <a href="{% url 'criar_usuario' %}" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-user-plus"></i> Criar Novo Aluno
+                            <i class="fas fa-user-plus me-1"></i> Criar Novo Aluno
                         </a>
                     </div>
-                    <!-- prettier-ignore -->
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Informações da Turma -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Informações da Turma</h5>
+            <!-- Card Informações da Turma -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações da Turma</h5>
                 </div>
-                <div class="card-body">
-                    <div class="info-list">
-                        <div class="info-item mb-2">
-                            <strong>Nome:</strong> {{ turma.nome }}
-                        </div>
-                        <div class="info-item mb-2">
-                            <strong>Série:</strong> {{ turma.get_serie_display }}
-                        </div>
-                        <div class="info-item mb-2">
-                            <strong>Período:</strong> {{ turma.get_periodo_display }}
-                        </div>
-                        <div class="info-item mb-2">
-                            <strong>Ano Letivo:</strong> {{ turma.ano_letivo }}
-                        </div>
-                        <div class="info-item mb-2">
-                            <strong>Professor:</strong> 
-                            <!-- prettier-ignore -->
-                            {% if turma.professor %}
-                                {{ turma.professor.papel.pessoa.nome }}
-                            <!-- prettier-ignore -->
-                            {% else %}
-                                <span class="text-muted">Não atribuído</span>
-                            <!-- prettier-ignore -->
-                            {% endif %}
-                        </div>
-                        <div class="info-item">
-                            <strong>Disciplinas:</strong> 
-                            <!-- prettier-ignore -->
-                            {% if turma.disciplinas.all %}
-                                {% for disciplina in turma.disciplinas.all %}
-                                    <span class="badge bg-info me-1">{{ disciplina.get_nome_display }}</span>
-                                <!-- prettier-ignore -->
-                                {% endfor %}
-                            <!-- prettier-ignore -->
-                            {% else %}
-                                <span class="text-muted">Nenhuma disciplina</span>
-                            <!-- prettier-ignore -->
-                            {% endif %}
-                        </div>
-                    </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered mb-0">
+                        <tbody>
+                            <tr>
+                                <td width="50%" class="bg-light">
+                                    <div class="text-muted small">Turma</div>
+                                    <div class="fw-bold">{{ turma.nome }}</div>
+                                </td>
+                                <td width="50%" class="bg-light">
+                                    <div class="text-muted small">Série</div>
+                                    <div class="fw-bold">{{ turma.get_serie_display }}</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light">
+                                    <div class="text-muted small">Período</div>
+                                    <div class="fw-bold">{{ turma.get_periodo_display }}</div>
+                                </td>
+                                <td class="bg-light">
+                                    <div class="text-muted small">Ano Letivo</div>
+                                    <div class="fw-bold">{{ turma.ano_letivo }}</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="bg-light">
+                                    <div class="text-muted small">Professor</div>
+                                    <div class="fw-bold">
+                                        {% if turma.professor %}
+                                            {{ turma.professor.papel.pessoa.nome }}
+                                        {% else %}
+                                            <span class="text-muted">Não atribuído</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="bg-light">
+                                    <div class="text-muted small mb-1">Disciplinas</div>
+                                    <div>
+                                        {% if turma.disciplinas.all %}
+                                            {% for disciplina in turma.disciplinas.all %}
+                                                <span class="badge bg-info me-1 mb-1">{{ disciplina.get_nome_display }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted">Nenhuma disciplina</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
-<!-- prettier-ignore -->
+
+<style>
+.card { border-radius: 8px; overflow: hidden; }
+.table-hover tbody tr:hover { background-color: rgba(0, 123, 255, 0.05); }
+.border-bottom { border-bottom: 1px solid #dee2e6 !important; }
+.align-middle { vertical-align: middle !important; }
+.badge { font-weight: 500; padding: 5px 10px; }
+.bg-opacity-10 { background-color: rgba(var(--bs-primary-rgb), 0.1) !important; }
+.bg-info.bg-opacity-10 { background-color: rgba(var(--bs-info-rgb), 0.1) !important; }
+</style>
 {% endblock %}

@@ -1,77 +1,107 @@
-{% extends "base.html" %} {% load static %} {% block content %}
-<div class="container mt-4">
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <!-- Cabeçalho simplificado -->
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-users"></i> Lista de Turmas</h2>
-    <a href="{% url 'academico:criar_turma' %}" class="btn btn-success">
-      <i class="fas fa-plus"></i> Nova Turma
+    <div>
+      <h2 class="mb-0">Turmas</h2>
+      <p class="text-muted mb-0">Gerencie as turmas do sistema</p>
+    </div>
+    <a href="{% url 'academico:criar_turma' %}" class="btn btn-primary">
+      <i class="fas fa-plus me-1"></i> Nova Turma
     </a>
   </div>
 
-  {% if messages %} {% for message in messages %}
-  <div
-    class="alert alert-{{ message.tags }} alert-dismissible fade show"
-    role="alert"
-  >
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  <!-- Alertas -->
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
   </div>
-  {% endfor %} {% endif %}
+  {% endif %}
 
+  <!-- Card principal -->
   <div class="card">
-    <div class="card-body">
+    <div class="card-header bg-light">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Lista de Turmas</h5>
+        <span class="badge bg-secondary">
+          {{ turmas|length }} turma{{ turmas|pluralize }}
+        </span>
+      </div>
+    </div>
+    
+    <div class="card-body p-0">
       {% if turmas %}
+      <!-- Tabela simplificada -->
       <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-hover mb-0">
           <thead>
             <tr>
-              <th>Nome</th>
+              <th>Turma</th>
               <th>Série</th>
               <th>Período</th>
-              <th>Ano Letivo</th>
+              <th>Ano</th>
               <th>Professor</th>
-              <th>Alunos</th>
-              <th>Ações</th>
+              <th class="text-center">Alunos</th>
+              <th class="text-end">Ações</th>
             </tr>
           </thead>
           <tbody>
             {% for turma in turmas %}
-            <tr>
-              <td>
-                <strong>{{ turma.nome }}</strong>
+            <tr class="border-bottom">
+              <td class="align-middle">
+                <div class="fw-bold">{{ turma.nome }}</div>
               </td>
-              <td>{{ turma.get_serie_display }}</td>
-              <td>{{ turma.get_periodo_display }}</td>
-              <td>{{ turma.ano_letivo }}</td>
-              <td>
-                {% if turma.professor %} {{ turma.professor.papel.pessoa.nome }}
+              <td class="align-middle">
+                <span class="badge bg-info">
+                  {{ turma.get_serie_display }}
+                </span>
+              </td>
+              <td class="align-middle">
+                <span class="badge {% if turma.periodo == 'M' %}bg-warning{% elif turma.periodo == 'T' %}bg-warning{% else %}bg-dark{% endif %}">
+                  {{ turma.get_periodo_display }}
+                </span>
+              </td>
+              <td class="align-middle">
+                <span class="badge bg-secondary">
+                  {{ turma.ano_letivo }}
+                </span>
+              </td>
+              <td class="align-middle">
+                {% if turma.professor %}
+                <div class="fw-medium">{{ turma.professor.papel.pessoa.nome|truncatechars:20 }}</div>
                 {% else %}
                 <span class="text-muted">Não atribuído</span>
                 {% endif %}
               </td>
-              <td>
-                <span class="badge bg-primary">{{ turma.total_alunos }}</span>
+              <td class="text-center align-middle">
+                <div class="fw-bold" style="font-size: 1.1rem;">{{ turma.total_alunos }}</div>
+                {% if turma.total_alunos > 30 %}
+                <div class="text-danger small mt-1">Acima do limite</div>
+                {% endif %}
               </td>
-              <td>
-                <div class="btn-group btn-group-sm">
-                  <a
-                    href="{% url 'academico:detalhar_turma' turma.pk %}"
-                    class="btn btn-info"
-                    title="Ver detalhes"
-                  >
+              <td class="text-end align-middle">
+                <div class="btn-group btn-group-sm" role="group">
+                  <a href="{% url 'academico:detalhar_turma' turma.pk %}" 
+                     class="btn btn-outline-primary" 
+                     title="Visualizar">
                     <i class="fas fa-eye"></i>
                   </a>
-                  <a
-                    href="{% url 'academico:editar_turma' turma.pk %}"
-                    class="btn btn-warning"
-                    title="Editar"
-                  >
+                  <a href="{% url 'academico:editar_turma' turma.pk %}" 
+                     class="btn btn-outline-warning" 
+                     title="Editar">
                     <i class="fas fa-edit"></i>
                   </a>
-                  <a
-                    href="{% url 'academico:excluir_turma' turma.pk %}"
-                    class="btn btn-danger"
-                    title="Excluir"
-                  >
+                  <a href="{% url 'academico:excluir_turma' turma.pk %}" 
+                     class="btn btn-outline-danger" 
+                     title="Excluir"
+                     onclick="return confirm('Tem certeza que deseja excluir a turma {{ turma.nome }}?')">
                     <i class="fas fa-trash"></i>
                   </a>
                 </div>
@@ -81,14 +111,61 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Rodapé simplificado -->
+      <div class="card-footer">
+        <small class="text-muted">
+          <i class="fas fa-info-circle me-1"></i> Clique nos botões de ação para gerenciar cada turma
+        </small>
+      </div>
       {% else %}
-      <div class="text-center py-4">
-        <i class="fas fa-users fa-3x text-muted mb-3"></i>
-        <h5 class="text-muted">Nenhuma turma cadastrada</h5>
-        <p class="text-muted">Clique no botão "Nova Turma" para começar.</p>
+      <!-- Estado vazio simplificado -->
+      <div class="text-center py-5">
+        <div class="mb-3">
+          <i class="fas fa-chalkboard-teacher fa-3x text-muted"></i>
+        </div>
+        <h5 class="text-muted mb-3">Nenhuma turma cadastrada</h5>
+        <p class="text-muted mb-3">Comece criando sua primeira turma.</p>
+        <a href="{% url 'academico:criar_turma' %}" class="btn btn-primary">
+          <i class="fas fa-plus me-1"></i>Criar Primeira Turma
+        </a>
       </div>
       {% endif %}
     </div>
   </div>
 </div>
+
+<style>
+.card {
+  border-radius: 8px;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-group .btn {
+  border-radius: 4px;
+  margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+.badge {
+  font-weight: 500;
+  padding: 4px 8px;
+}
+
+/* Divisórias mais visíveis entre as linhas */
+.border-bottom {
+  border-bottom: 2px solid #dee2e6 !important;
+}
+
+/* Melhor alinhamento vertical */
+.align-middle {
+  vertical-align: middle !important;
+}
+</style>
 {% endblock %}

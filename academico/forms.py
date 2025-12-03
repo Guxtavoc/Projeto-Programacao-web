@@ -9,19 +9,25 @@ class TurmaForm(forms.ModelForm):
             'class': 'form-control select2-multiple',
             'data-placeholder': 'Selecione as disciplinas...'
         }),
-        required=False
+        required=False,
+        label='Disciplinas (com professor)'
     )
-    
+
     class Meta:
         model = Turma
-        fields = ['nome', 'serie', 'periodo', 'ano_letivo', 'professor', 'disciplinas']
+        fields = ['nome', 'serie', 'periodo', 'ano_letivo', 'disciplinas']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             'serie': forms.Select(attrs={'class': 'form-control'}),
             'periodo': forms.Select(attrs={'class': 'form-control'}),
             'ano_letivo': forms.NumberInput(attrs={'class': 'form-control'}),
-            'professor': forms.Select(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Personaliza a label de cada disciplina para mostrar também o professor
+        self.fields['disciplinas'].queryset = Disciplina.objects.filter(ativa=True)
+        self.fields['disciplinas'].label_from_instance = lambda obj: f"{obj.get_nome_display()} - {obj.professor.papel.pessoa.nome}"
 
 class DisciplinaForm(forms.ModelForm):
     class Meta:
@@ -33,7 +39,6 @@ class DisciplinaForm(forms.ModelForm):
             'carga_horaria': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
-# SOLUÇÃO: Use um Form regular em vez de ModelForm para AlunoEditForm
 class AlunoEditForm(forms.Form):
     matricula = forms.CharField(
         max_length=20,

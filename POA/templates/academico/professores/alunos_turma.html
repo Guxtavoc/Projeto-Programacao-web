@@ -3,62 +3,112 @@
 {% block title %}Alunos da Turma {{ turma.nome }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-
-    <h2 class="mb-4">
-        Turma: {{ turma.nome }} — <small class="text-muted">{{ turma.ano }}</small>
-    </h2>
-
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <span>Alunos matriculados</span>
-            <a href="{% url 'academico:minhas_turmas_professor' %}" class="btn btn-light btn-sm">
-                <i class="bi bi-arrow-left"></i> Voltar
+<div class="container-fluid mt-4">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-users text-primary me-2"></i>Alunos da Turma
+            </h2>
+        </div>
+        <div class="d-flex align-items-center">
+            <a href="{% url 'academico:minhas_turmas_professor' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
             </a>
         </div>
+    </div>
 
-        <div class="card-body">
-
-            {% if alunos %}
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Nome</th>
-                                <th>Email</th>
-                                <th>Idade</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for aluno in alunos %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-
-                                    <!-- Nome com quebra -->
-                                    <td class="text-wrap" style="max-width: 220px;">
-                                        {{ aluno.papel.pessoa.nome }} {{ aluno.papel.pessoa.sobrenome }}
-                                    </td>
-
-                                    <!-- Email não quebra -->
-                                    <td class="text-muted" style="white-space: nowrap;">
-                                        {{ aluno.papel.pessoa.email }}
-                                    </td>
-
-                                    <td>{{ aluno.idade }} anos</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-            {% else %}
-                <p class="text-center text-muted mt-3">
-                    Nenhum aluno matriculado nesta turma.
-                </p>
-            {% endif %}
-
+    <!-- Tabela de informações da turma -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <tbody>
+                    <tr>
+                        <td width="25%" class="bg-light">
+                            <div class="text-muted small">Turma</div>
+                            <div class="fw-bold">{{ turma.nome }}</div>
+                        </td>
+                        <td width="25%" class="bg-light">
+                            <div class="text-muted small">Série</div>
+                            <div class="fw-bold">{{ turma.get_serie_display }}</div>
+                        </td>
+                        <td width="25%" class="bg-light">
+                            <div class="text-muted small">Período</div>
+                            <div class="fw-bold">{{ turma.get_periodo_display }}</div>
+                        </td>
+                        <td width="25%" class="bg-light">
+                            <div class="text-muted small">Ano Letivo</div>
+                            <div class="fw-bold">{{ turma.ano_letivo }}</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
+
+    <!-- Card da tabela de alunos -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            {% if alunos %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%" class="ps-4">Numero da chamada</th>
+                            <th width="65%">Nome Completo</th>
+                            <th width="15%">Idade</th>
+                            <th width="15%" class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for aluno in alunos %}
+                        <tr class="border-bottom">
+                            <td class="ps-4 align-middle">
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary fw-normal">{{ forloop.counter }}</span>
+                            </td>
+                            <td class="align-middle">
+                                <div>
+                                    <div class="fw-bold mb-0">{{ aluno.papel.pessoa.nome }} {{ aluno.papel.pessoa.sobrenome }}</div>
+                                    <small class="text-muted">ID: {{ aluno.id }}</small>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <span class="badge bg-info bg-opacity-10 text-info border border-info">{{ aluno.idade }} anos</span>
+                            </td>
+                            <td class="text-center align-middle">
+                                {% if aluno.ativo %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success">Ativo</span>
+                                {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Inativo</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <h4 class="text-muted mb-3">Nenhum aluno matriculado</h4>
+                <p class="text-muted mb-4">Esta turma ainda não possui alunos matriculados.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if alunos %}
+        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+            <small class="text-muted">Total de alunos: {{ alunos|length }}</small>
+            <small class="text-muted">{% now "d/m/Y" %}</small>
+        </div>
+        {% endif %}
+    </div>
 </div>
+
+<style>
+.card { border-radius: 8px; overflow: hidden; }
+.table-hover tbody tr:hover { background-color: rgba(0, 123, 255, 0.05); }
+.border-bottom { border-bottom: 1px solid #dee2e6 !important; }
+.align-middle { vertical-align: middle !important; }
+.badge { font-weight: 500; padding: 5px 10px; }
+</style>
 {% endblock %}

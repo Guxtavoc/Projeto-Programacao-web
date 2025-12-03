@@ -133,8 +133,12 @@ def dashboard(request):
     if is_professor:
         try:
             professor_info = ProfessorInfo.objects.get(papel__pessoa=pessoa, papel__ativo=True)
-            turmas_professor = Turma.objects.filter(professor=professor_info, ativa=True)
-            
+            # Turmas onde o professor leciona alguma disciplina
+            turmas_professor = Turma.objects.filter(
+                ativa=True,
+                disciplinas__professor=professor_info
+            ).distinct().prefetch_related('disciplinas', 'disciplinas__professor').order_by('serie', 'nome')
+
             context.update({
                 'minhas_turmas': turmas_professor,
                 'total_minhas_turmas': turmas_professor.count(),
@@ -144,7 +148,7 @@ def dashboard(request):
                 'minhas_turmas': [],
                 'total_minhas_turmas': 0,
             })
-    
+        
     # Dados para Aluno
     if is_aluno:
         try:

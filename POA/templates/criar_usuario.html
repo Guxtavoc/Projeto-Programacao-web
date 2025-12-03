@@ -1,91 +1,242 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
 
-<div class="container mt-4">
-  <h2>Criar novo usuário</h2>
-  <hr />
+{% block content %}
+<div class="container-fluid mt-4">
+  <!-- Cabeçalho -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">Criar Novo Usuário</h2>
+    </div>
+  </div>
 
-  <form method="POST">
-    {% csrf_token %}
+  <!-- Formulário -->
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+          <h5 class="mb-0">
+            <i class="fas fa-user-plus text-primary me-2"></i>Informações do Usuário
+          </h5>
+        </div>
+        
+        <div class="card-body">
+          <form method="POST">
+            {% csrf_token %}
 
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label>Username</label>
-        {{ form.username }}
-      </div>
+            <!-- Informações Básicas -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="border-bottom pb-2 mb-3">
+                  <i class="fas fa-id-card text-muted me-2"></i>Informações Básicas
+                </h6>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-user text-muted me-1"></i>Username
+                </label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                {% endif %}
+              </div>
 
-      <div class="col-md-6 mb-3">
-        <label>Senha</label>
-        {{ form.senha }}
-      </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-lock text-muted me-1"></i>Senha
+                </label>
+                {{ form.senha }}
+                {% if form.senha.errors %}
+                <div class="text-danger small mt-1">{{ form.senha.errors }}</div>
+                {% endif %}
+              </div>
 
-      <div class="col-md-12 mb-3">
-        <label>Nome completo</label>
-        {{ form.nome }}
-      </div>
+              <div class="col-12 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-signature text-muted me-1"></i>Nome Completo
+                </label>
+                {{ form.nome }}
+                {% if form.nome.errors %}
+                <div class="text-danger small mt-1">{{ form.nome.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
 
-      <div class="col-md-4 mb-3">
-        <label>CPF</label>
-        {{ form.cpf }}
-      </div>
+            <!-- Informações Pessoais -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="border-bottom pb-2 mb-3">
+                  <i class="fas fa-user-circle text-muted me-2"></i>Informações Pessoais
+                </h6>
+              </div>
+              
+              <div class="col-md-4 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-id-card text-muted me-1"></i>CPF
+                </label>
+                {{ form.cpf }}
+                {% if form.cpf.errors %}
+                <div class="text-danger small mt-1">{{ form.cpf.errors }}</div>
+                {% endif %}
+              </div>
 
-      <div class="col-md-4 mb-3">
-        <label>Data de Nascimento</label>
-        {{ form.data_nascimento }}
-      </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-calendar-alt text-muted me-1"></i>Data de Nascimento
+                </label>
+                {{ form.data_nascimento }}
+                {% if form.data_nascimento.errors %}
+                <div class="text-danger small mt-1">{{ form.data_nascimento.errors }}</div>
+                {% endif %}
+              </div>
 
-      <div class="col-md-4 mb-3">
-        <label>E-mail</label>
-        {{ form.email }}
-      </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-envelope text-muted me-1"></i>E-mail
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                {% endif %}
+              </div>
 
-      <div class="col-md-4 mb-3">
-        <label>Telefone</label>
-        {{ form.telefone }}
-      </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-phone text-muted me-1"></i>Telefone
+                </label>
+                {{ form.telefone }}
+                {% if form.telefone.errors %}
+                <div class="text-danger small mt-1">{{ form.telefone.errors }}</div>
+                {% endif %}
+              </div>
 
-      <div class="col-md-4 mb-3">
-        <label>Papel</label>
-        {{ form.tipo_papel }}
-      </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-user-tag text-muted me-1"></i>Tipo de Usuário
+                </label>
+                {{ form.tipo_papel }}
+                {% if form.tipo_papel.errors %}
+                <div class="text-danger small mt-1">{{ form.tipo_papel.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
 
-      <!-- Campos específicos -->
-      <div class="col-md-4 mb-3 aluno-fields" style="display: none">
-        <label>Matrícula</label>
-        {{ form.matricula }}
-      </div>
+            <!-- Campos Específicos - Aluno -->
+            <div class="row mb-4 aluno-fields" style="display: none">
+              <div class="col-12">
+                <h6 class="border-bottom pb-2 mb-3">
+                  <i class="fas fa-user-graduate text-muted me-2"></i>Informações do Aluno
+                </h6>
+              </div>
+              
+              <div class="col-md-4 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-id-badge text-muted me-1"></i>Matrícula
+                </label>
+                {{ form.matricula }}
+                {% if form.matricula.errors %}
+                <div class="text-danger small mt-1">{{ form.matricula.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
 
-      <div class="col-md-4 mb-3 professor-fields" style="display: none">
-        <label>Código Funcional</label>
-        {{ form.codigo_funcional }}
-      </div>
+            <!-- Campos Específicos - Professor -->
+            <div class="row mb-4 professor-fields" style="display: none">
+              <div class="col-12">
+                <h6 class="border-bottom pb-2 mb-3">
+                  <i class="fas fa-chalkboard-teacher text-muted me-2"></i>Informações do Professor
+                </h6>
+              </div>
+              
+              <div class="col-md-4 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-id-card-alt text-muted me-1"></i>Código Funcional
+                </label>
+                {{ form.codigo_funcional }}
+                {% if form.codigo_funcional.errors %}
+                <div class="text-danger small mt-1">{{ form.codigo_funcional.errors }}</div>
+                {% endif %}
+              </div>
 
-      <div class="col-md-8 mb-3 professor-fields" style="display: none">
-        <label>Formação</label>
-        {{ form.formacao }}
+              <div class="col-md-8 mb-3">
+                <label class="form-label">
+                  <i class="fas fa-graduation-cap text-muted me-1"></i>Formação Acadêmica
+                </label>
+                {{ form.formacao }}
+                {% if form.formacao.errors %}
+                <div class="text-danger small mt-1">{{ form.formacao.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="row mt-4">
+              <div class="col-12">
+                <div class="d-flex justify-content-between">
+                  <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                  </a>
+                  <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-check me-1"></i> Criar Usuário
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-
-    <button class="btn btn-primary mt-3">Criar Usuário</button>
-  </form>
+  </div>
 </div>
 
-<script>
-  const papelSelect = document.querySelector("#id_tipo_papel");
+<style>
+.card {
+  border-radius: 10px;
+}
 
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #dee2e6;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.border-bottom {
+  border-color: #e9ecef !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const papelSelect = document.querySelector("#id_tipo_papel");
+  
   function updateFields() {
     const papel = papelSelect.value;
-
-    document.querySelectorAll(".aluno-fields").forEach((el) => {
+    
+    // Campos de aluno
+    const alunoFields = document.querySelectorAll(".aluno-fields");
+    alunoFields.forEach((el) => {
       el.style.display = papel === "ALUNO" ? "block" : "none";
     });
-
-    document.querySelectorAll(".professor-fields").forEach((el) => {
+    
+    // Campos de professor
+    const professorFields = document.querySelectorAll(".professor-fields");
+    professorFields.forEach((el) => {
       el.style.display = papel === "PROFESSOR" ? "block" : "none";
     });
   }
-
+  
   papelSelect.addEventListener("change", updateFields);
   updateFields();
+});
 </script>
-
 {% endblock %}

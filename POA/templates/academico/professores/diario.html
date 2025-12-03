@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Diário do Professor</h2>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="GET" class="mb-3">
+    <label>Filtrar por turma:</label>
+    <select name="turma" onchange="this.form.submit()">
+        <option value="">Selecione...</option>
+        {% for t in turmas %}
+            <option value="{{ t.id }}" {% if t.id == turma_selecionada %}selected{% endif %}>
+                {{ t.nome }} - {{ t.get_serie_display }}
+            </option>
+        {% endfor %}
+    </select>
+</form>
+
+{% if alunos_data %}
+<form method="POST">
+    {% csrf_token %}
+    <!-- Campo oculto para manter a turma selecionada -->
+    <input type="hidden" name="turma" value="{{ turma_selecionada }}">
+    
+    {% for item in alunos_data %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <strong>{{ item.aluno.papel.pessoa.nome }}</strong>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Disciplina</th>
+                        <th>B1</th>
+                        <th>B2</th>
+                        <th>B3</th>
+                        <th>B4</th>
+                        <th>Média</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in item.disciplinas %}
+                    <tr>
+                        <td>{{ d.disciplina.get_nome_display }}</td>
+                        {% for nota in d.notas %}
+                        <td>
+                            <input type="number" 
+                                   step="0.01" 
+                                   min="0" 
+                                   max="10"
+                                   class="nota-input"
+                                   name="nota_{{ item.aluno.id }}_{{ d.disciplina.id }}_{{ forloop.counter0 }}"
+                                   value="{% if nota %}{{ nota }}{% endif %}"
+                                   placeholder="0.00">
+                        </td>
+                        {% endfor %}
+                        <td>
+                            <input type="text" 
+                                   class="form-control media" 
+                                   readonly 
+                                   style="text-align: center;">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success btn-lg">
+        <i class="fas fa-save"></i> Salvar Notas
+    </button>
+</form>
+{% elif turma_selecionada %}
+<div class="alert alert-info">
+    <p>Nenhum aluno encontrado para esta turma ou a turma não possui disciplinas atribuídas a você.</p>
+</div>
+{% endif %}
+
+<script>
+// Calcula média automaticamente
+document.addEventListener('DOMContentLoaded', function() {
+    function calcularMediaLinha(row) {
+        const inputs = row.querySelectorAll('.nota-input');
+        const mediaInput = row.querySelector('.media');
+        
+        let soma = 0;
+        let contador = 0;
+        
+        inputs.forEach(input => {
+            const valor = parseFloat(input.value);
+            if (!isNaN(valor) && valor !== '') {
+                soma += valor;
+                contador++;
+            }
+        });
+        
+        if (contador > 0) {
+            const media = soma / contador;
+            mediaInput.value = media.toFixed(2);
+            // Colorir baseado na média
+            if (media >= 7) {
+                mediaInput.style.backgroundColor = '#d4edda';
+            } else if (media >= 5) {
+                mediaInput.style.backgroundColor = '#fff3cd';
+            } else {
+                mediaInput.style.backgroundColor = '#f8d7da';
+            }
+        } else {
+            mediaInput.value = '';
+            mediaInput.style.backgroundColor = '';
+        }
+    }
+    
+    // Calcular médias iniciais
+    document.querySelectorAll('tbody tr').forEach(row => {
+        calcularMediaLinha(row);
+        
+        // Adicionar evento de input para cada campo de nota
+        row.querySelectorAll('.nota-input').forEach(input => {
+            input.addEventListener('input', function() {
+                calcularMediaLinha(row);
+            });
+        });
+    });
+    
+    // Prevenir envio do formulário se houver erros
+    document.querySelector('form[method="POST"]').addEventListener('submit', function(e) {
+        let temErro = false;
+        document.querySelectorAll('.nota-input').forEach(input => {
+            const valor = input.value;
+            if (valor !== '') {
+                const num = parseFloat(valor);
+                if (isNaN(num) || num < 0 || num > 10) {
+                    input.style.borderColor = 'red';
+                    temErro = true;
+                } else {
+                    input.style.borderColor = '';
+                }
+            }
+        });
+        
+        if (temErro) {
+            e.preventDefault();
+            alert('Por favor, corrija os valores inválidos. As notas devem estar entre 0 e 10.');
+        }
+    });
+});
+</script>
+
+<style>
+.nota-input {
+    width: 70px;
+    text-align: center;
+}
+.media {
+    font-weight: bold;
+    width: 80px;
+}
+.card-header {
+    background-color: #f8f9fa;
+    font-size: 1.1rem;
+}
+</style>
+{% endblock %}

@@ -1,45 +1,61 @@
 <!-- SIDEBAR + CONTEÚDO -->
 <div class="layout">
-  <!-- SIDEBAR -->
-  <nav class="sidebar" id="sidebar">
-    <div class="sidebar-toggle" id="sidebar-toggle">
-      <i class="fas fa-bars"></i>
-    </div>
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-toggle" id="sidebar-toggle">
+    <i class="fas fa-bars"></i>
+  </div>
 
-    <ul class="sidebar-menu">
-      <li class="menu-item">
-        <a href="{% url 'dashboard' %}" class="menu-link">
-          <i class="fas fa-home"></i> <span class="menu-text">Início</span>
-        </a>
-      </li>
-      <li class="menu-item">
-        <i class="fas fa-clipboard-list"></i>
-        <span class="menu-text">Boletins</span>
-      </li>
-      <li class="menu-item">
-        <a href="{% url 'academico:listar_turmas' %}" class="menu-link">
-          <i class="fas fa-users"></i> <span class="menu-text">Turmas</span>
-        </a>
-      </li>
-      <li class="menu-item">
-        <i class="fas fa-calendar-check"></i>
-        <span class="menu-text">Chamada</span>
-      </li>
-      <li class="menu-item">
-        <a href="{% url 'academico:listar_disciplinas' %}" class="menu-link">
-          <i class="fas fa-book"></i> <span class="menu-text">Disciplinas</span>
-        </a>
-      </li>
-      <li class="menu-item">
-        <i class="fas fa-chart-bar"></i>
-        <span class="menu-text">Relatórios</span>
-      </li>
-      <li class="menu-item">
-        <i class="fas fa-cog"></i> <span class="menu-text">Configurações</span>
-      </li>
-    </ul>
-  </nav>
+  <ul class="sidebar-menu">
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <main class="content" id="content">{% block content %}{% endblock %}</main>
+    <!-- Link disponível para todos -->
+    <li class="menu-item">
+      <a href="{% url 'dashboard' %}" class="menu-link">
+        <i class="fas fa-home"></i> <span class="menu-text">Início</span>
+      </a>
+    </li>
+
+    <!-- Aluno -->
+    {% if tipo_papel == 'ALUNO' %}
+    <li class="menu-item">
+      <i class="fas fa-clipboard-list"></i> <span class="menu-text">Boletins</span>
+    </li>
+    {% endif %}
+
+    <!-- Professor -->
+    {% if tipo_papel == 'PROFESSOR' %}
+    <li class="menu-item">
+      <a href="{% url 'academico:minhas_turmas_professor' %}" class="menu-link">
+        <i class="fas fa-users"></i> <span class="menu-text">Minhas Turmas</span>
+      </a>
+    </li>
+        <li class="menu-item">
+      <a href="{% url 'academico:diario_professor' %}" class="menu-link">
+        <i class="fas fa-users"></i> <span class="menu-text">Lançar Avaliações</span>
+      </a>
+    </li>
+    {% endif %}
+
+    <!-- Coordenador -->
+    {% if tipo_papel == 'COORDENADOR' %}
+    <li class="menu-item">
+      <a href="{% url 'academico:listar_turmas' %}" class="menu-link">
+        <i class="fas fa-users"></i> <span class="menu-text">Turmas</span>
+      </a>
+    </li>
+    <li class="menu-item">
+      <a href="{% url 'academico:listar_disciplinas' %}" class="menu-link">
+        <i class="fas fa-book"></i> <span class="menu-text">Disciplinas</span>
+      </a>
+    </li>
+    <li class="menu-item">
+      <i class="fas fa-chart-bar"></i> <span class="menu-text">Relatórios</span>
+    </li>
+    <li class="menu-item">
+      <i class="fas fa-cog"></i> <span class="menu-text">Configurações</span>
+    </li>
+    {% endif %}
+
+  </ul>
+</nav>
+
 </div>

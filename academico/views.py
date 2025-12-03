@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from django.core.paginator import Paginator
 from django.utils import timezone
-from .models import Chamada, Turma, Disciplina, Matricula
+from .models import Chamada, Nota, Turma, Disciplina, Matricula
 from .forms import TurmaForm, DisciplinaForm, AlunoEditForm
 from pessoas.models import AlunoInfo, Papel, ProfessorInfo, Pessoa
 
@@ -421,17 +421,18 @@ def adicionar_alunos_em_lote(request, pk):
 
 @login_required
 def minhas_turmas_professor(request):
-    """Listar todas as turmas do professor"""
+    """Listar todas as turmas de um professor, considerando todas as disciplinas atribuídas a ele"""
     try:
         professor_info = ProfessorInfo.objects.get(papel__pessoa__user=request.user, papel__ativo=True)
     except ProfessorInfo.DoesNotExist:
         messages.error(request, "Você não tem permissão de professor ativo.")
         return redirect('dashboard')
     
+    # Filtra turmas ativas onde o professor leciona alguma disciplina
     turmas = Turma.objects.filter(
-        professor=professor_info,
-        ativa=True
-    ).select_related('professor').prefetch_related('disciplinas').order_by('serie', 'nome')
+        ativa=True,
+        disciplinas__professor=professor_info
+    ).distinct().prefetch_related('disciplinas', 'disciplinas__professor').order_by('serie', 'nome')
     
     context = {
         'professor': professor_info,
@@ -578,3 +579,76 @@ def chamada(request, turma_id):
         'chamadas': chamadas,
         'data_hoje': data_hoje
     })
+
+@login_required
+def diario_professor(request):
+    try:
+        professor = ProfessorInfo.objects.get(papel__pessoa__user=request.user, papel__ativo=True)
+    except ProfessorInfo.DoesNotExist:
+        return redirect('dashboard')
+
+    turmas = Turma.objects.filter(ativa=True).filter(disciplinas__professor=professor).distinct()
+    
+    turma_id = request.POST.get('turma') or request.GET.get('turma')
+    turma = None
+    alunos_data = []
+
+    if turma_id:
+        turma = get_object_or_404(Turma, pk=turma_id, ativa=True)
+        alunos = turma.matriculas.filter(ativa=True).select_related('aluno__papel__pessoa')
+        disciplinas = turma.disciplinas.filter(professor=professor, ativa=True)
+
+        if request.method == 'POST':
+            for key, value in request.POST.items():
+                if key.startswith('nota_'):
+                    try:
+                        _, aluno_id, disciplina_id, bimestre_index = key.split('_')
+                        bimestre = int(bimestre_index) + 1
+                        if value.strip():
+                            nota_val = float(value.replace(',', '.'))
+                            Nota.objects.update_or_create(
+                                aluno_id=aluno_id,
+                                disciplina_id=disciplina_id,
+                                turma=turma,
+                                bimestre=bimestre,
+                                defaults={'nota': nota_val}
+                            )
+                        else:
+                            Nota.objects.filter(
+                                aluno_id=aluno_id,
+                                disciplina_id=disciplina_id,
+                                turma=turma,
+                                bimestre=bimestre
+                            ).delete()
+                    except Exception:
+                        continue
+            messages.success(request, "Notas salvas com sucesso!")
+            return redirect(f'{request.path}?turma={turma_id}')
+
+        # Monta dados para template
+        for matricula in alunos:
+            aluno = matricula.aluno
+            disciplinas_data = []
+            for disciplina in disciplinas:
+                notas_qs = Nota.objects.filter(aluno=aluno, disciplina=disciplina, turma=turma).order_by('bimestre')
+                notas_lista = [''] * 4
+                for nota_obj in notas_qs:
+                    idx = nota_obj.bimestre - 1
+                    if 0 <= idx < 4:
+                        notas_lista[idx] = format(nota_obj.nota, '.1f') if nota_obj.nota is not None else ''
+                disciplinas_data.append({
+                    'disciplina': disciplina,
+                    'notas': notas_lista
+                })
+            alunos_data.append({
+                'aluno': aluno,
+                'disciplinas': disciplinas_data
+            })
+
+    context = {
+        'professor': professor,
+        'turmas': turmas,
+        'turma_selecionada': int(turma_id) if turma_id else None,
+        'alunos_data': alunos_data,
+    }
+    return render(request, 'academico/professores/diario.html', context)
