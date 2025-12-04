@@ -323,15 +323,13 @@ def gerenciar_alunos_turma(request, pk):
         turmas=turma
     ).select_related('papel__pessoa').order_by('papel__pessoa__nome')
     
-    # Adicionar aluno à turma
+    # Adicionar aluno à turma manualmente
     if request.method == 'POST' and 'adicionar_aluno' in request.POST:
         aluno_id = request.POST.get('aluno_id')
         if aluno_id:
             try:
                 aluno = AlunoInfo.objects.get(pk=aluno_id, papel__ativo=True)
-                # Verificar se já não está matriculado
                 if not turma.alunos.filter(pk=aluno.pk).exists():
-                    # Criar matrícula
                     Matricula.objects.create(
                         aluno=aluno,
                         turma=turma,
@@ -340,11 +338,38 @@ def gerenciar_alunos_turma(request, pk):
                     )
                     messages.success(request, f'Aluno {aluno.papel.pessoa.nome} adicionado à turma!')
                 else:
-                    messages.warning(request, f'Aluno já está na turma.')
+                    messages.warning(request, 'Aluno já está na turma.')
             except AlunoInfo.DoesNotExist:
                 messages.error(request, 'Aluno não encontrado.')
-            return redirect('academico:gerenciar_alunos_turma', pk=pk)
+        return redirect('academico:gerenciar_alunos_turma', pk=pk)
     
+    # Adição automática baseada na idade
+    if request.method == 'POST' and 'adicionar_automaticamente' in request.POST:
+        # Defina aqui o intervalo de idade por série
+        idade_minima, idade_maxima = {
+            '1': (6, 7),
+            '2': (7, 8),
+            '3': (8, 9),
+            # Adicione mais séries conforme necessidade
+        }.get(str(turma.serie), (0, 100))
+        
+        adicionados = 0
+        for aluno in alunos_disponiveis:
+            if idade_minima <= aluno.papel.pessoa.idade <= idade_maxima:
+                Matricula.objects.create(
+                    aluno=aluno,
+                    turma=turma,
+                    situacao='ATIVA',
+                    ativa=True
+                )
+                adicionados += 1
+
+        if adicionados > 0:
+            messages.success(request, f'{adicionados} aluno(s) automaticamente matriculado(s) na turma!')
+        else:
+            messages.info(request, 'Nenhum aluno apropriado para a série foi encontrado.')
+        return redirect('academico:gerenciar_alunos_turma', pk=pk)
+
     context = {
         'turma': turma,
         'alunos_na_turma': alunos_na_turma,
@@ -352,27 +377,30 @@ def gerenciar_alunos_turma(request, pk):
     }
     return render(request, 'academico/turmas/gerenciar_alunos.html', context)
 
+
 @login_required
 def remover_aluno_turma(request, turma_pk, aluno_pk):
     """Remover aluno da turma (desativar matrícula)"""
     if request.method == 'POST':
         turma = get_object_or_404(Turma, pk=turma_pk)
         aluno = get_object_or_404(AlunoInfo, pk=aluno_pk)
-        
-        # Encontrar e desativar a matrícula
-        matricula = get_object_or_404(
-            Matricula, 
-            turma=turma, 
-            aluno=aluno, 
+
+        # Buscar matrícula ativa
+        matricula_qs = Matricula.objects.filter(
+            turma=turma,
+            aluno=aluno,
             ativa=True
         )
-        
-        matricula.ativa = False
-        matricula.situacao = 'CANCELADA'
-        matricula.save()
-        
-        messages.success(request, f'Aluno {aluno.papel.pessoa.nome} removido da turma!')
-    
+
+        if matricula_qs.exists():
+            matricula = matricula_qs.first()
+            matricula.ativa = False
+            matricula.situacao = 'CANCELADA'
+            matricula.save()
+            messages.success(request, f'Aluno {aluno.papel.pessoa.nome} removido da turma!')
+        else:
+            messages.warning(request, f'Aluno {aluno.papel.pessoa.nome} não possui matrícula ativa nesta turma.')
+
     return redirect('academico:gerenciar_alunos_turma', pk=turma_pk)
 
 @login_required
@@ -421,28 +449,71 @@ def adicionar_alunos_em_lote(request, pk):
 
 @login_required
 def minhas_turmas_professor(request):
-    """Listar todas as turmas de um professor, considerando todas as disciplinas atribuídas a ele"""
+    """Listar todas as turmas em que o professor ministra alguma disciplina"""
     try:
-        professor_info = ProfessorInfo.objects.get(papel__pessoa__user=request.user, papel__ativo=True)
+        professor_info = ProfessorInfo.objects.get(
+            papel__pessoa__user=request.user, 
+            papel__ativo=True
+        )
     except ProfessorInfo.DoesNotExist:
         messages.error(request, "Você não tem permissão de professor ativo.")
         return redirect('dashboard')
     
-    # Filtra turmas ativas onde o professor leciona alguma disciplina
+    # Turmas ativas onde o professor ministra alguma disciplina
     turmas = Turma.objects.filter(
         ativa=True,
         disciplinas__professor=professor_info
     ).distinct().prefetch_related('disciplinas', 'disciplinas__professor').order_by('serie', 'nome')
     
-    context = {
+    return render(request, 'academico/professores/minhas_turmas.html', {
         'professor': professor_info,
-        'turmas': turmas,
-    }
-    return render(request, 'academico/professores/minhas_turmas.html', context)
+        'turmas': turmas
+    })
+
 
 @login_required
 def detalhar_turma_professor(request, pk):
     """Detalhar uma turma específica do professor com suas matrículas e alunos"""
+    try:
+        professor_info = ProfessorInfo.objects.get(
+            papel__pessoa__user=request.user, 
+            papel__ativo=True
+        )
+    except ProfessorInfo.DoesNotExist:
+        messages.error(request, "Você não tem permissão de professor ativo.")
+        return redirect('dashboard')
+    
+    turma = Turma.objects.filter(
+        pk=pk,
+        ativa=True,
+        disciplinas__professor=professor_info
+    ).distinct().first()
+
+    if not turma:
+        messages.error(request, "Turma não encontrada ou você não tem acesso.")
+        return redirect('academico:minhas_turmas_professor')
+    
+    matriculas = Matricula.objects.filter(
+        turma=turma,
+        aluno__papel__ativo=True
+    ).select_related('aluno__papel__pessoa').order_by('aluno__papel__pessoa__nome')
+
+    disciplinas_turma = turma.disciplinas.filter(
+        professor=professor_info,
+        ativa=True
+    )
+
+    return render(request, 'academico/turmas/detalhar.html', {
+        'turma': turma,
+        'matriculas': matriculas,
+        'disciplinas_turma': disciplinas_turma,
+        'total_alunos': matriculas.count(),
+        'professor': professor_info
+    })
+
+@login_required
+def alunos_turma_professor(request, turma_pk):
+    """Listar alunos de uma turma específica (professor)"""
     try:
         professor_info = ProfessorInfo.objects.get(
             papel__pessoa__user=request.user,
@@ -452,127 +523,81 @@ def detalhar_turma_professor(request, pk):
         messages.error(request, "Você não tem permissão de professor ativo.")
         return redirect('dashboard')
     
-    turma = get_object_or_404(
-        Turma,
-        pk=pk,
-        professor=professor_info,
-        ativa=True
-    )
-    
-    # 🔥 Buscar matrículas dos alunos da turma
-    matriculas = Matricula.objects.filter(
-        turma=turma,
-        aluno__papel__ativo=True
-    ).select_related(
-        'aluno__papel__pessoa'
-    ).order_by('aluno__papel__pessoa__nome')
-
-    # Disciplinas da turma associadas ao professor
-    disciplinas_turma = turma.disciplinas.filter(
-        professor=professor_info,
-        ativa=True
-    )
-    
-    # Estatísticas
-    total_alunos = matriculas.count()
-    
-    context = {
-        'turma': turma,
-        'matriculas': matriculas,      # 👈 Agora SIM
-        'disciplinas_turma': disciplinas_turma,
-        'total_alunos': total_alunos,
-        'professor': professor_info,
-        'is_coordenador': request.user.groups.filter(name='Coordenador').exists(),  # opcional
-        'eh_coordenador': request.user.groups.filter(name='Coordenador').exists(), # se estiver usando no template
-    }
-    
-    return render(request, 'academico/turmas/detalhar.html', context)
-
-@login_required
-def alunos_turma_professor(request, turma_pk):
-    """Listar alunos de uma turma específica (visualização do professor)"""
-    try:
-        professor_info = ProfessorInfo.objects.get(papel__pessoa__user=request.user, papel__ativo=True)
-    except ProfessorInfo.DoesNotExist:
-        messages.error(request, "Você não tem permissão de professor ativo.")
-        return redirect('dashboard')
-    
-    turma = get_object_or_404(
-        Turma,
+    turma = Turma.objects.filter(
         pk=turma_pk,
-        professor=professor_info,
-        ativa=True
-    )
+        ativa=True,
+        disciplinas__professor=professor_info
+    ).distinct().first()
+
+    if not turma:
+        messages.error(request, "Turma não encontrada ou você não tem acesso.")
+        return redirect('academico:minhas_turmas_professor')
     
     alunos = AlunoInfo.objects.filter(
         turmas=turma,
         papel__ativo=True
     ).select_related('papel__pessoa').order_by('papel__pessoa__nome')
-    
-    # Adicionar idade para cada aluno
+
     today = timezone.now().date()
     for aluno in alunos:
         aluno.idade = today.year - aluno.papel.pessoa.data_nascimento.year - (
             (today.month, today.day) < 
             (aluno.papel.pessoa.data_nascimento.month, aluno.papel.pessoa.data_nascimento.day)
         )
-    
-    context = {
+
+    return render(request, 'academico/professores/alunos_turma.html', {
         'turma': turma,
         'alunos': alunos,
-        'professor': professor_info,
-    }
-    return render(request, 'academico/professores/alunos_turma.html', context)
+        'professor': professor_info
+    })
 
 @login_required
 def chamada(request, turma_id):
+    try:
+        professor = ProfessorInfo.objects.get(
+            papel__pessoa__user=request.user,
+            papel__ativo=True
+        )
+    except ProfessorInfo.DoesNotExist:
+        messages.error(request, "Você não tem permissão de professor ativo.")
+        return redirect('dashboard')
 
-    # professor logado
-    professor = get_object_or_404(
-        ProfessorInfo,
-        papel__pessoa__user=request.user
-    )
+    turma = Turma.objects.filter(
+        id=turma_id,
+        ativa=True,
+        disciplinas__professor=professor
+    ).distinct().first()
 
-    turma = get_object_or_404(Turma, id=turma_id)
-
-    # segurança: professor só acessa turmas dele
-    if turma.professor != professor:
-        messages.error(request, "Você não tem permissão para acessar esta turma.")
+    if not turma:
+        messages.error(request, "Turma não encontrada ou você não tem acesso.")
         return redirect('academico:minhas_turmas_professor')
 
     data_hoje = timezone.now().date()
 
-    # alunos ativos
-    alunos = (
-        Matricula.objects
-        .filter(turma=turma, ativa=True)
-        .select_related('aluno__papel__pessoa')
-        .order_by('aluno__papel__pessoa__nome')
-    )
+    matriculas = Matricula.objects.filter(
+        turma=turma,
+        ativa=True
+    ).select_related('aluno__papel__pessoa').order_by('aluno__papel__pessoa__nome')
 
-    # cria chamadas
-    for matricula in alunos:
+    # Cria registros de chamada do dia se não existirem
+    for matricula in matriculas:
         Chamada.objects.get_or_create(
             turma=turma,
             aluno=matricula.aluno,
-            data=data_hoje,
+            data=data_hoje
         )
 
-    # busca chamadas do dia
-    chamadas = (
-        Chamada.objects
-        .filter(turma=turma, data=data_hoje)
-        .select_related('aluno__papel__pessoa')
-        .order_by('aluno__papel__pessoa__nome')
-    )
+    chamadas = Chamada.objects.filter(
+        turma=turma,
+        data=data_hoje
+    ).select_related('aluno__papel__pessoa').order_by('aluno__papel__pessoa__nome')
 
     if request.method == "POST":
-        for chamada in chamadas:
-            chamada.presente = request.POST.get(f"presente_{chamada.id}") == "on"
-            chamada.save()
-
+        for chamada_obj in chamadas:
+            chamada_obj.presente = request.POST.get(f"presente_{chamada_obj.id}") == "on"
+            chamada_obj.save()
         messages.success(request, "Chamada registrada com sucesso!")
-        return redirect('academico:chamada', turma_id=turma.id)
+        return redirect('academico:fazer_chamada_professor', turma_id=turma.id)
 
     return render(request, 'academico/professores/chamada.html', {
         'turma': turma,
@@ -698,3 +723,89 @@ def meu_boletim(request):
     }
 
     return render(request, "academico/alunos/meu_boletim.html", context)
+
+@login_required
+def minha_frequencia(request):
+    """View para aluno visualizar sua frequência"""
+    try:
+        aluno = AlunoInfo.objects.get(papel__pessoa__user=request.user, papel__ativo=True)
+    except AlunoInfo.DoesNotExist:
+        messages.error(request, "Você não tem permissão de aluno ativo.")
+        return redirect('dashboard')
+    
+    # Buscar todas as matrículas ativas do aluno
+    matriculas = Matricula.objects.filter(aluno=aluno, ativa=True).select_related('turma')
+    
+    # Estrutura para armazenar dados de frequência por turma
+    frequencias_data = []
+    
+    for matricula in matriculas:
+        turma = matricula.turma
+        
+        # Buscar todas as chamadas do aluno nesta turma
+        chamadas = Chamada.objects.filter(
+            aluno=aluno,
+            turma=turma
+        ).order_by('data')
+        
+        # Calcular estatísticas
+        total_aulas = chamadas.count()
+        total_presente = chamadas.filter(presente=True).count()
+        total_faltas = chamadas.filter(presente=False).count()
+        
+        if total_aulas > 0:
+            percentual_presenca = (total_presente / total_aulas) * 100
+        else:
+            percentual_presenca = 0
+        
+        # Agrupar por mês/ano
+        frequencia_mensal = []
+        for chamada in chamadas:
+            mes_ano = f"{chamada.data.month:02d}/{chamada.data.year}"
+            
+            # Verificar se já existe esse mês na lista
+            encontrado = False
+            for item in frequencia_mensal:
+                if item['mes_ano'] == mes_ano:
+                    item['total_aulas'] += 1
+                    if chamada.presente:
+                        item['presentes'] += 1
+                    else:
+                        item['faltas'] += 1
+                    encontrado = True
+                    break
+            
+            if not encontrado:
+                frequencia_mensal.append({
+                    'mes_ano': mes_ano,
+                    'mes': chamada.data.month,
+                    'ano': chamada.data.year,
+                    'total_aulas': 1,
+                    'presentes': 1 if chamada.presente else 0,
+                    'faltas': 0 if chamada.presente else 1,
+                })
+        
+        # Calcular percentual para cada mês
+        for item in frequencia_mensal:
+            if item['total_aulas'] > 0:
+                item['percentual'] = (item['presentes'] / item['total_aulas']) * 100
+            else:
+                item['percentual'] = 0
+        
+        frequencias_data.append({
+            'turma': turma,
+            'total_aulas': total_aulas,
+            'total_presente': total_presente,
+            'total_faltas': total_faltas,
+            'percentual_presenca': percentual_presenca,
+            'frequencia_mensal': sorted(frequencia_mensal, key=lambda x: (x['ano'], x['mes']), reverse=True),
+            'primeira_aula': chamadas.first().data if chamadas.exists() else None,
+            'ultima_aula': chamadas.last().data if chamadas.exists() else None,
+        })
+    
+    return render(request, 'academico/alunos/frequencia.html', {
+        'aluno': aluno,
+        'frequencias_data': frequencias_data,
+        'hoje': timezone.now().date(),
+    })
+

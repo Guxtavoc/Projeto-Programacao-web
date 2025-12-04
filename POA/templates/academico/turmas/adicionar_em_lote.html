@@ -1,7 +1,6 @@
-{% extends "base.html" %} 
-{% load static %} 
+{% extends "base.html" %}
+{% load static %}
 
-<!-- prettier-ignore -->
 {% block breadcrumb_items %}
 <li class="breadcrumb-item"><a href="{% url 'academico:dashboard' %}">Acadêmico</a></li>
 <li class="breadcrumb-item"><a href="{% url 'academico:listar_turmas' %}">Turmas</a></li>
@@ -10,7 +9,6 @@
 <li class="breadcrumb-item active">Adicionar em Lote</li>
 {% endblock %}
 
-<!-- prettier-ignore -->
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -24,10 +22,8 @@
                 </div>
                 
                 <div class="card-body">
-                    <!-- prettier-ignore -->
                     {% if alunos_disponiveis %}
                     <form method="post" id="lote-form">
-                        <!-- prettier-ignore -->
                         {% csrf_token %}
                         
                         <div class="alert alert-info">
@@ -54,7 +50,6 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- prettier-ignore -->
                                         {% for aluno in alunos_disponiveis %}
                                         <tr>
                                             <td>
@@ -65,7 +60,6 @@
                                             <td>{{ aluno.matricula }}</td>
                                             <td>{{ aluno.papel.pessoa.email|default:"-" }}</td>
                                         </tr>
-                                        <!-- prettier-ignore -->
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -81,7 +75,6 @@
                             </button>
                         </div>
                     </form>
-                    <!-- prettier-ignore -->
                     {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
@@ -91,52 +84,69 @@
                             <i class="fas fa-arrow-left"></i> Voltar ao Gerenciamento
                         </a>
                     </div>
-                    <!-- prettier-ignore -->
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!-- prettier-ignore -->
-{% endblock %}
 
-<!-- prettier-ignore -->
-{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const selecionarTodos = document.getElementById('selecionar-todos');
-    const checkboxesAlunos = document.querySelectorAll('.aluno-checkbox');
+    const checkboxesAlunos = document.querySelectorAll('input[name="alunos_selecionados"]');
     const contador = document.getElementById('contador-selecionados');
     const btnAdicionar = document.getElementById('btn-adicionar');
 
-    // Selecionar/deselecionar todos
-    selecionarTodos.addEventListener('change', function() {
-        checkboxesAlunos.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-        atualizarContador();
-    });
+    if (!btnAdicionar || checkboxesAlunos.length === 0) return;
 
     // Atualizar contador e botão
     function atualizarContador() {
-        const selecionados = document.querySelectorAll('.aluno-checkbox:checked').length;
-        contador.textContent = `${selecionados} aluno(s) selecionado(s)`;
-        btnAdicionar.disabled = selecionados === 0;
+        let selecionados = 0;
+        checkboxesAlunos.forEach(cb => {
+            if (cb.checked) selecionados++;
+        });
         
-        // Atualizar selecionar-todos
-        selecionarTodos.checked = selecionados === checkboxesAlunos.length && checkboxesAlunos.length > 0;
-        selecionarTodos.indeterminate = selecionados > 0 && selecionados < checkboxesAlunos.length;
+        contador.textContent = selecionados + ' aluno(s) selecionado(s)';
+        btnAdicionar.disabled = selecionados === 0;
+
+        if (selecionarTodos) {
+            selecionarTodos.checked = selecionados === checkboxesAlunos.length && checkboxesAlunos.length > 0;
+            selecionarTodos.indeterminate = selecionados > 0 && selecionados < checkboxesAlunos.length;
+        }
     }
 
-    // Adicionar listeners para cada checkbox
-    checkboxesAlunos.forEach(checkbox => {
-        checkbox.addEventListener('change', atualizarContador);
+    // Adicionar listeners
+    checkboxesAlunos.forEach(cb => {
+        cb.addEventListener('change', atualizarContador);
     });
+    
+    if (selecionarTodos) {
+        selecionarTodos.addEventListener('change', function() {
+            checkboxesAlunos.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            atualizarContador();
+        });
+    }
 
-    // Inicializar
+    // Inicializar contador
     atualizarContador();
 });
 </script>
-<!-- prettier-ignore -->
+
+<style>
+.form-check-input {
+    cursor: pointer;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+#btn-adicionar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style>
 {% endblock %}

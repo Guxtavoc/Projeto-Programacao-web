@@ -142,19 +142,16 @@
           <i class="fas fa-clipboard-check"></i>
           <h3>Presenças Hoje</h3>
           <p class="number">{{ presencas_hoje|default:"0" }}</p>
-          <small>em breve</small>
         </div>
         <div class="card">
           <i class="fas fa-user-times"></i>
           <h3>Faltas no Mês</h3>
           <p class="number">{{ faltas_mes|default:"0" }}</p>
-          <small>em breve</small>
         </div>
         <div class="card">
           <i class="fas fa-book"></i>
           <h3>Minhas Turmas</h3>
           <p class="number">{{ minhas_turmas_aluno.count|default:"0" }}</p>
-          <small>em breve</small>
         </div>
       </div>
     </div>
@@ -183,7 +180,7 @@
         <a href="{% url 'academico:meu_boletim' %}" class="btn btn-primary">
           <i class="fas fa-file-alt"></i> Meu Boletim
         </a>
-        <a href="#" class="btn btn-info">
+        <a href="{% url 'academico:minha_frequencia' %}" class="btn btn-info">
           <i class="fas fa-calendar-check"></i> Minha Frequência
         </a>
         <a href="#" class="btn btn-success">

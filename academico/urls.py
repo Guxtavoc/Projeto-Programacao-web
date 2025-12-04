@@ -25,6 +25,7 @@ urlpatterns = [
     path('alunos/<int:pk>/editar/', views.editar_aluno, name='editar_aluno'),
     path('alunos/<int:pk>/toggle-status/', views.toggle_aluno_status, name='toggle_aluno_status'),
     path('meu_boletim/', views.meu_boletim, name='meu_boletim'),
+    path('minha_frequencia/', views.minha_frequencia, name='minha_frequencia'),
     
     path('professores/', views.listar_professores, name='listar_professores'),
     path('professor/minhas-turmas/', views.minhas_turmas_professor, name='minhas_turmas_professor'),

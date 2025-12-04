@@ -71,9 +71,8 @@
                                         </div>
                                     </td>
                                     <td class="align-middle">
-                                        {% now "Y" as current_year %}
                                         <span class="badge bg-info bg-opacity-10 text-info border border-info">
-                                            {{ current_year|add:"-aluno.papel.pessoa.data_nascimento.year" }} anos
+                                            {{ aluno.papel.pessoa.idade }} anos
                                         </span>
                                     </td>
                                     <td class="text-end align-middle">
@@ -115,10 +114,25 @@
 
         <!-- Coluna direita -->
         <div class="col-md-4">
-            <!-- Card Adicionar Aluno -->
+            <!-- Botão de Adição Automática -->
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Adicionar Aluno</h5>
+                    <h5 class="mb-0"><i class="fas fa-magic me-2"></i>Adicionar Automaticamente</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" name="adicionar_automaticamente" class="btn btn-warning w-100">
+                            <i class="fas fa-magic me-1"></i> Adicionar alunos da faixa etária da série
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Card Adicionar Aluno Manual -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Adicionar Aluno Manualmente</h5>
                 </div>
                 <div class="card-body">
                     {% if alunos_disponiveis %}
@@ -129,7 +143,7 @@
                             <select name="aluno_id" class="form-select" required>
                                 <option value="">Selecione um aluno...</option>
                                 {% for aluno in alunos_disponiveis %}
-                                <option value="{{ aluno.pk }}">{{ aluno.papel.pessoa.nome }} - {{ aluno.matricula }}</option>
+                                <option value="{{ aluno.pk }}">{{ aluno.papel.pessoa.nome }} - {{ aluno.matricula }} ({{ aluno.papel.pessoa.idade }} anos)</option>
                                 {% endfor %}
                             </select>
                         </div>
