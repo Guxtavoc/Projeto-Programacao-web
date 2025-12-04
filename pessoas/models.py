@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 #dados comuns a todos os usuarios
 class Pessoa(models.Model):
@@ -42,8 +43,22 @@ class Papel(models.Model):
 #Um aluno COMPÕE suas informações + informações do seu papel + informações do usuario
 class AlunoInfo(models.Model):
     papel = models.OneToOneField(Papel, on_delete=models.CASCADE, related_name='aluno_info')
-    matricula = models.CharField(max_length=20, unique=True, verbose_name='Matrícula')
+    matricula = models.CharField(max_length=20, unique=True, verbose_name='Matrícula', blank=True)
     data_ingresso = models.DateField(auto_now_add=True, verbose_name='Data de ingresso')
+    
+    def save(self, *args, **kwargs):
+        if not self.matricula:
+            ano = timezone.now().year
+            # Pega o último número sequencial para o ano atual
+            ultimas = AlunoInfo.objects.filter(matricula__startswith=str(ano)).order_by('-matricula')
+            if ultimas.exists():
+                ultimo_numero = int(ultimas.first().matricula[-4:])
+                sequencial = ultimo_numero + 1
+            else:
+                sequencial = 1
+            # Gera matrícula com zeros à esquerda
+            self.matricula = f"{ano}{sequencial:04d}"
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"Aluno: {self.papel.pessoa.nome} - {self.matricula}"

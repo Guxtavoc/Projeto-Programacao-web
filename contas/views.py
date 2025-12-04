@@ -33,14 +33,12 @@ def logout_view(request):
 
 @login_required
 def criar_usuario(request):
+    # Verifica permissões
     if request.user.is_superuser:
         has_permission = True
     else:
         pessoa = getattr(request.user, "pessoa", None)
-        has_permission = (
-            pessoa and 
-            pessoa.papeis.filter(tipo=Papel.COORDENADOR).exists()
-        )
+        has_permission = pessoa and pessoa.papeis.filter(tipo=Papel.COORDENADOR).exists()
 
     if not has_permission:
         messages.error(request, "Apenas coordenadores podem criar usuários.")
@@ -49,13 +47,14 @@ def criar_usuario(request):
     # Processamento do formulário
     if request.method == "POST":
         form = CriarUsuarioForm(request.POST)
-
         if form.is_valid():
+            # Criação do usuário
             user = User.objects.create_user(
                 username=form.cleaned_data["username"],
                 password=form.cleaned_data["senha"]
             )
 
+            # Criação da pessoa
             pessoa = Pessoa.objects.create(
                 user=user,
                 nome=form.cleaned_data["nome"],
@@ -65,16 +64,15 @@ def criar_usuario(request):
                 telefone=form.cleaned_data["telefone"],
             )
 
+            # Criação do papel
             papel = Papel.objects.create(
                 pessoa=pessoa,
                 tipo=form.cleaned_data["tipo_papel"]
             )
 
+            # Criação do info específico
             if papel.tipo == Papel.ALUNO:
-                AlunoInfo.objects.create(
-                    papel=papel,
-                    matricula=form.cleaned_data["matricula"]
-                )
+                AlunoInfo.objects.create(papel=papel)  # Matrícula gerada automaticamente
             elif papel.tipo == Papel.PROFESSOR:
                 ProfessorInfo.objects.create(
                     papel=papel,
@@ -84,7 +82,6 @@ def criar_usuario(request):
 
             messages.success(request, "Usuário criado com sucesso!")
             return redirect("dashboard")
-    
     else:
         form = CriarUsuarioForm()
 

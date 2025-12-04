@@ -18,6 +18,5 @@ class CriarUsuarioForm(forms.Form):
     tipo_papel = forms.ChoiceField(choices=Papel.TIPOS_PAPEL, label="Papel")
 
     # Campos opcionais específicos
-    matricula = forms.CharField(required=False)
     codigo_funcional = forms.CharField(required=False)
     formacao = forms.CharField(required=False)
