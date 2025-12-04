@@ -76,4 +76,9 @@ docker-compose exec web python manage.py migrate
 # Coletar arquivos estáticos
 
 docker-compose exec web python manage.py collectstatic
+
+# Criar ocorrencias no banco de dados
+
+docker-compose exec web python popula_usuarios.py
+
 ```
