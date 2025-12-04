@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Meu Boletim</h2>
+        </div>
+    </div>
+
+    <!-- Card de Informações Pessoais -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0">
+                <i class="fas fa-user-circle text-primary me-2"></i>Informações Pessoais
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <tbody>
+                    <tr>
+                        <td width="25%" class="bg-light">
+                            <div class="text-muted small">Nome</div>
+                            <div class="fw-bold">{{ aluno.papel.pessoa.nome }}</div>
+                        </td>
+                        <td width="25%" class="bg-light">
+                            <div class="text-muted small">CPF</div>
+                            <div class="fw-bold">{{ aluno.papel.pessoa.cpf }}</div>
+                        </td>
+                        <td width="25%" class="bg-light">
+                            <div class="text-muted small">E-mail</div>
+                            <div class="fw-bold">{{ aluno.papel.pessoa.email }}</div>
+                        </td>
+                        <td width="25%" class="bg-light">
+                            <div class="text-muted small">Matrícula</div>
+                            <div class="fw-bold">{{ aluno.matricula|default:"-" }}</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Boletim por Turma -->
+    {% if boletim %}
+        {% for item in boletim %}
+        <div class="card border-0 shadow-sm mb-4">
+            <!-- Cabeçalho da Turma -->
+            <div class="card-header bg-white border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">
+                            <i class="fas fa-chalkboard-teacher text-primary me-2"></i> {{ item.turma.nome }}
+                        </h5>
+                        <small class="text-muted">
+                            <i class="fas fa-user-tie me-1"></i>    Professor: {{ item.professor }}
+                        </small>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-muted small">Ano Letivo</div>
+                        <div class="fw-bold">{{ item.turma.ano_letivo }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tabela de Notas -->
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="30%" class="ps-4">Disciplina</th>
+                                <th width="15%" class="text-center">1º Bim</th>
+                                <th width="15%" class="text-center">2º Bim</th>
+                                <th width="15%" class="text-center">3º Bim</th>
+                                <th width="15%" class="text-center">4º Bim</th>
+                                <th width="10%" class="text-center">Média</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for disc in item.disciplinas %}
+                            <tr class="border-bottom">
+                                <td class="ps-4 align-middle fw-bold">{{ disc.disciplina }}</td>
+                                
+                                {% for nota in disc.notas %}
+                                <td class="text-center align-middle">
+                                    {% if nota %}
+                                        <span class="badge {% if nota >= 7 %}bg-success{% elif nota >= 5 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ nota }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">
+                                            -
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                                
+                                <td class="text-center align-middle">
+                                    {% if disc.media %}
+                                        <span class="badge {% if disc.media >= 7 %}bg-success{% elif disc.media >= 5 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ disc.media|floatformat:1 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">
+                                            -
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Rodapé com Estatísticas -->
+            <div class="card-footer bg-white border-0 py-3">
+                <div class="row">
+                    <div class="col-md-4">
+                        <small class="text-muted">
+                            <i class="fas fa-book me-1"></i>Disciplinas: {{ item.disciplinas|length }}
+                        </small>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <small class="text-muted">
+                            <i class="fas fa-calculator me-1"></i>Média Geral: 
+                            {% if item.media_geral %}
+                                <span class="badge {% if item.media_geral >= 7 %}bg-success{% elif item.media_geral >= 5 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ item.media_geral|floatformat:1 }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">
+                                    -
+                                </span>
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>Situação: 
+                            {% if item.situacao %}
+                                <span class="badge {% if item.situacao == 'Aprovado' %}bg-success{% elif item.situacao == 'Recuperação' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ item.situacao }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">
+                                    Em andamento
+                                </span>
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <!-- Estado Vazio -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-clipboard-list fa-4x text-muted opacity-50"></i>
+                </div>
+                <h4 class="text-muted mb-3">Nenhuma turma ativa encontrada</h4>
+                <p class="text-muted mb-4">Você não está matriculado em nenhuma turma no momento.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e9ecef !important;
+}
+
+.align-middle {
+    vertical-align: middle !important;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    font-size: 0.85em;
+    min-width: 40px;
+    display: inline-block;
+    text-align: center;
+}
+
+.bg-opacity-10 {
+    background-color: rgba(var(--bs-secondary-rgb), 0.1) !important;
+}
+
+.border-secondary {
+    border-color: #6c757d !important;
+}
+</style>
+{% endblock %}

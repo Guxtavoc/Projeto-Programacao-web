@@ -652,3 +652,49 @@ def diario_professor(request):
         'alunos_data': alunos_data,
     }
     return render(request, 'academico/professores/diario.html', context)
+
+@login_required
+def meu_boletim(request):
+    user = request.user
+    try:
+        aluno = AlunoInfo.objects.get(papel__pessoa__user=user)
+    except AlunoInfo.DoesNotExist:
+        return render(request, "academico/erro.html", {"mensagem": "Você não possui perfil de aluno."})
+    
+    turmas = aluno.turmas.filter(ativa=True)
+    boletim = []
+
+    for turma in turmas:
+        professor_nome = turma.professor.papel.pessoa.nome if turma.professor else "Não atribuído"
+        disciplinas = turma.disciplinas.all()
+        notas_disciplinas = []
+
+        for disciplina in disciplinas:
+            notas_obj = Nota.objects.filter(aluno=aluno, turma=turma, disciplina=disciplina).order_by('bimestre')
+            notas = [n.nota for n in notas_obj]
+            notas_completas = [notas[i] if i < len(notas) else None for i in range(4)]
+
+            notas_validas = [n for n in notas_completas if n is not None]
+            if notas_validas:
+                media = round(sum(notas_validas) / len(notas_validas), 2)
+            else:
+                media = None
+
+            notas_disciplinas.append({
+                "disciplina": disciplina.get_nome_display(),
+                "notas": notas_completas,
+                "media": media
+            })
+
+        boletim.append({
+            "turma": turma,
+            "professor": professor_nome,
+            "disciplinas": notas_disciplinas
+        })
+
+    context = {
+        "aluno": aluno,
+        "boletim": boletim
+    }
+
+    return render(request, "academico/alunos/meu_boletim.html", context)
