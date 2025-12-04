@@ -17,6 +17,7 @@
 !academico/**
 !contas/
 !contas/**
+!popula_usuarios.py
 
 
 **/__pycache__/
